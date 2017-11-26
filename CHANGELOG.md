@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 - [ ] Initialization of github project by required files and features
-- [ ] Version file
+- [x] Version file
 - [ ] Weak pointer implementation
 - [ ] Enable Travis CI to buil project
 - [ ] Enable CodeCov to test project
