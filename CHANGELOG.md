@@ -22,7 +22,7 @@ Directory structure
       CMakeList.txt
       CTestConfig.cmake
     include/
-      libmodules
+      libmodules/
         ...
     src
       cpp files

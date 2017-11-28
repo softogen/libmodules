@@ -16,13 +16,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ******************************************************************************/
 
-#include "locable.hpp"
+#include <functional>
 
 namespace mtl
 {
-    class weak_pointer
+    struct no_locable
     {
-    public:
-        weak_pointer() {}
+        void lock() {}
+        void unlock() {}
+    };
+
+    struct ILocker
+    {
+        virtual void lock() = 0;
+        virtual void unlock() = 0;
+    };
+
+    struct interface_locker
+    {
+        interface_locker(ILocker& locker) : _locker(locker) {}
+        void lock() { _locker.get().lock(); }
+        void unlock() { _locker.get().unlock(); }
+    private:
+        std::reference_wrapper<ILocker> _locker;
     };
 }
