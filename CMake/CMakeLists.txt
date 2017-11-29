@@ -26,11 +26,8 @@ target_include_directories(libmodules INTERFACE ../include)
 
 # Setup testing
 enable_testing()
-include_directories(/usr/src/gtest)
-add_library(gtest STATIC /usr/src/gtest/src/gtest-all.cc)
-target_link_libraries(gtest)
-add_library(gtest_main STATIC /usr/src/gtest/src/gtest_main.cc)
-target_link_libraries(gtest_main)
+
+add_subdirectory(../dependencies/gtest dependencies/gtest)
 
 # Add test cpp file
 add_executable(libmodules_unit_test
