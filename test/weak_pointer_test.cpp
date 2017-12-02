@@ -1,5 +1,5 @@
 #include <libmodules/weak_pointer.hpp>
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 TEST(test, initial)
 {

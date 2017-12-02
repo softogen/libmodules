@@ -20,13 +20,13 @@ limitations under the License.
 
 namespace mtl
 {
-    struct no_locable
+    struct no_lockable
     {
         void lock() {}
         void unlock() {}
     };
 
-    struct ILocker
+    struct I_locable
     {
         virtual void lock() = 0;
         virtual void unlock() = 0;
@@ -34,10 +34,10 @@ namespace mtl
 
     struct interface_locker
     {
-        interface_locker(ILocker& locker) : _locker(locker) {}
+        interface_locker(I_locable& locker) : _locker(locker) {}
         void lock() { _locker.get().lock(); }
         void unlock() { _locker.get().unlock(); }
     private:
-        std::reference_wrapper<ILocker> _locker;
+        std::reference_wrapper<I_locable> _locker;
     };
 }

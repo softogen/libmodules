@@ -19,23 +19,29 @@ cmake_minimum_required(VERSION 3.4)
 project(libmodules)
 
 set (CMAKE_CXX_STANDARD 11)
+
+set (GTestDir "dependencies/gtest")
+add_subdirectory("${GTestDir}")
+set (GTEST_LIBRARY "${gmock_BINARY_DIR}/libgmock.a") # ${GTestDir}/googlemock/libgmock.a)
+set (GTEST_MAIN_LIBRARY "${gmock_BINARY_DIR}/libgmock_main.a") #${GTestDir}/googlemock/libgmock_main.a)
+
 find_package (Threads)
+find_package(GTest)
 
 add_library(libmodules INTERFACE)
-target_include_directories(libmodules INTERFACE ../include)
+target_include_directories(libmodules INTERFACE include)
 
 # Setup testing
 enable_testing()
 
-add_subdirectory(../dependencies/gtest dependencies/gtest)
-
 # Add test cpp file
 add_executable(libmodules_unit_test
-    ../include/libmodules/locable.hpp
-    ../include/libmodules/weak_pointer.hpp
-    ../test/weak_pointer_test.cpp
+    include/libmodules/lockable.hpp
+    include/libmodules/weak_pointer.hpp
+    test/weak_pointer_test.cpp
 )
 
 # Link test executable against gtest & gtest_main
-target_link_libraries(libmodules_unit_test gtest gtest_main ${CMAKE_THREAD_LIBS_INIT} libmodules)
-add_test(NAME libmodules_unit_test COMMAND libmodule_unit_test)
+target_link_libraries(libmodules_unit_test gmock gmock_main ${CMAKE_THREAD_LIBS_INIT} libmodules)
+#add_test(NAME libmodules_unit_test COMMAND libmodules_unit_test)
+gtest_add_tests(TARGET libmodules_unit_test)

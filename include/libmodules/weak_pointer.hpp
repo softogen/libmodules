@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ******************************************************************************/
 
-#include "locable.hpp"
+#include "lockable.hpp"
 
 namespace mtl
 {
