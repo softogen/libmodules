@@ -18,11 +18,18 @@ limitations under the License.
 
 #include "lockable.hpp"
 
-namespace mtl
+namespace modules
 {
-    class weak_pointer
-    {
-    public:
-        weak_pointer() {}
-    };
+  class enable_spying
+  {
+  };
+  
+  template< typename T> class spy_pointer
+  {
+  public:
+    spy_pointer(T* p_object = nullptr) : _p_object(p_object) {}
+    T* operator ->() { return _p_object; }
+  private:
+    T* _p_object;
+  };
 }
