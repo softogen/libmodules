@@ -20,15 +20,23 @@ limitations under the License.
 
 namespace modules
 {
-  class enable_spying
+  template< typename T> class spy_pointer;
+  template< typename T> class enable_spying
   {
+  public:
+    ~enable_spying() { _p_spy->reset(); }
+    void add_spy(spy_pointer<T>& spy) { _p_spy = &spy; }
+  private:
+    spy_pointer<T>* _p_spy = nullptr;
   };
   
   template< typename T> class spy_pointer
   {
   public:
-    spy_pointer(T* p_object = nullptr) : _p_object(p_object) {}
+    spy_pointer(T* p_object = nullptr) : _p_object(p_object) { if(_p_object) _p_object->add_spy(*this); }
     T* operator ->() { return _p_object; }
+    operator bool() const { return !!_p_object; }
+    void reset(T* p_object = nullptr) { *this = spy_pointer<T>(p_object); if(_p_object) _p_object->add_spy(*this); }
   private:
     T* _p_object;
   };
