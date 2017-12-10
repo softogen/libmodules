@@ -36,9 +36,11 @@ enable_testing()
 
 # Add test cpp file
 add_executable(libmodules_unit_test
-    include/libmodules/lockable.hpp
-    include/libmodules/spy_pointer.hpp
-    test/spy_pointer_test.cpp
+  include/libmodules/lockable.hpp
+  include/libmodules/linked_list.hpp
+  test/linked_list_test.cpp
+  include/libmodules/spy_pointer.hpp
+  test/spy_pointer_test.cpp
 )
 
 # Link test executable against gtest & gtest_main
