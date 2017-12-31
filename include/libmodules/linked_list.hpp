@@ -58,6 +58,7 @@ namespace modules
 	other._next->_prev = &_next;
       std::swap(_prev, other._prev);
       std::swap(_next, other._next);
+      return *this;
     }
 
     enable_linking_in_list(const enable_linking_in_list& next) : enable_linking_in_list(next._prev)
@@ -73,7 +74,7 @@ namespace modules
     enable_linking_in_list& operator =(         enable_linking_in_list&& other) { enable_linking_in_list tmp(std::move(other)); return swap(tmp); }
     enable_linking_in_list& insert_before(const enable_linking_in_list&  next)  { enable_linking_in_list tmp(next);             return swap(tmp); }
     enable_linking_in_list& insert_after( const enable_linking_in_list&  prev)  { enable_linking_in_list tmp(&prev._next);      return swap(tmp); }
-    enable_linking_in_list& unlink()                                            { enable_linking_in_list tmp;                 return swap(tmp); }
+    enable_linking_in_list& unlink()                                            { enable_linking_in_list tmp;                   return swap(tmp); }
 
     const T* next() const { return _next; }
     T* next() { return _next; }
