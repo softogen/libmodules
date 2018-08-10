@@ -45,6 +45,7 @@ add_executable(libmodules_unit_test
 
 # Link test executable against gtest & gtest_main
 target_link_libraries(libmodules_unit_test
+  gtest
   gmock
   gmock_main
   ${CMAKE_THREAD_LIBS_INIT}

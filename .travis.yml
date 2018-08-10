@@ -21,5 +21,4 @@ before_script:
   - cmake ..
 
 script:
-  - cmake --build .
-  - cmake --build . --target test
+  - cmake --build . &&  - cmake --build . --target test
