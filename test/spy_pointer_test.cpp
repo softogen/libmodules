@@ -23,7 +23,8 @@ using namespace mtl;
 struct SpiedObject
     : public enable_spying
 {
-    bool is_spied_state_in_callback = false;
+    bool
+    spied_state_in_callback = false;
     virtual void foo() {}
     virtual void on_spying_state_changed() { spied_state_in_callback = is_spied(); }
 };

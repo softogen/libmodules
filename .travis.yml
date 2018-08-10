@@ -1,0 +1,25 @@
+language: cpp
+
+compiler:
+  - gcc
+
+matrix:
+  include:
+  - env: GCC_VERSION=5
+    os: linux
+    compiler: g++-7
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-7
+
+before_script:
+  - mkdir _build
+  - cd _build
+  - cmake ..
+
+script:
+  - cmake --build .
+  - cmake --build . --target test
