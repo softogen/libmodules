@@ -25,11 +25,11 @@ else ()
   set (CMAKE_CXX_STANDARD 11)
 endif ()
 
-set (GMockDir "dependencies/gtest")
-add_subdirectory ("${GMockDir}")
+set (GTestDir "dependencies/gtest")
+add_subdirectory ("${GTestDir}")
 
 find_package (Threads REQUIRED)
-find_package (GMock REQUIRED)
+find_package (GTest REQUIRED)
 
 add_library (libmodules #INTERFACE
   include/libmodules/linked_list.hpp
