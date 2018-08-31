@@ -26,17 +26,16 @@ else ()
 endif ()
 
 set (GTestDir "dependencies/gtest")
-add_subdirectory ("${GTestDir}")
+add_subdirectory("${GTestDir}")
+set (GTEST_LIBRARY      "${gmock_BINARY_DIR}/libgmock.a")
+set (GTEST_MAIN_LIBRARY "${gmock_BINARY_DIR}/libgmock_main.a")
 
-find_package (Threads REQUIRED)
-find_package (GTest REQUIRED)
+find_package (Threads)
+find_package(GTest)
 
-add_library (libmodules #INTERFACE
-  include/libmodules/linked_list.hpp
-  include/libmodules/spy_pointer.hpp
-  include/libmodules/emitter.hpp
+add_library(libmodules INTERFACE
 )
-target_include_directories (libmodules INTERFACE include)
+target_include_directories(libmodules INTERFACE include)
 
 # Setup testing
 enable_testing()
