@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - [x] Version file
 
 ### added
+ - Emitter template as main part of signal module in [emitter.hpp](include/libmodules/emitter.hpp)
+
+### added
 - Weak pointer implementation in [spy_pointer.hpp](include/libmodules/spy_pointer.hpp)
 - Enable Travis CI to buil project by G++ 7 and run gtest
 
