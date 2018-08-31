@@ -33,6 +33,7 @@
 
 # CMake build dir
 build/
+_build
 CMakeCache.txt
 CMakeFiles
 CMakeScripts

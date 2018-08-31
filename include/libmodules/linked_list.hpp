@@ -1,3 +1,4 @@
+/* -*- mode: c++; c-file-style: "bsd"; c++-basic-offset: 4; indent-tabs-mode nil -*- */
 /***************************************************************************************************
 
 Project libmodule
@@ -73,7 +74,6 @@ namespace mtl
             // This assert is placed here to delay check until parent object is created.
             static_assert(std::is_base_of<enable_linking_in_list<T>, T>::value,
                           "enable_linking_in_list should be base of template parameter type");
-
             // Place self into the list head
             _prev = &list;
             _next = list;

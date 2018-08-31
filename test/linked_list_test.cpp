@@ -1,3 +1,4 @@
+/* -*- mode: c++; c-file-style: "bsd"; c++-basic-offset: 4; indent-tabs-mode nil -*- */
 /***************************************************************************************************
 
 Project libmodule

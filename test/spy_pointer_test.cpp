@@ -1,3 +1,4 @@
+/* -*- mode: c++; c-file-style: "bsd"; c++-basic-offset: 4; indent-tabs-mode nil -*- */
 /***************************************************************************************************
 
 Project libmodule
@@ -23,9 +24,9 @@ using namespace mtl;
 struct SpiedObject
     : public enable_spying
 {
-    bool spied_state_in_callback = false;
+    bool empty_state_in_callback = true;
     virtual void foo() {}
-    virtual void on_spying_state_changed() { spied_state_in_callback = is_spied(); }
+    virtual void on_spying_state_changed() { empty_state_in_callback = empty(); }
 };
 
 struct ChildObject
@@ -49,11 +50,11 @@ TEST(spying, can_detect_spied_object_destruction)
     ASSERT_FALSE(spy);
     {
         SpiedObject obj;
-        EXPECT_FALSE(obj.is_spied());
+        EXPECT_TRUE(obj.empty());
         
         spy.reset(&obj);
         ASSERT_TRUE(spy);
-        EXPECT_TRUE(obj.is_spied());
+        EXPECT_FALSE(obj.empty());
     }
     ASSERT_FALSE(spy);
 }
@@ -80,7 +81,7 @@ TEST(spying, can_construct_a_copy)
     EXPECT_TRUE(spy2);
     spy1.reset();
     EXPECT_TRUE(spy2);
-    EXPECT_TRUE(obj.is_spied());
+    EXPECT_FALSE(obj.empty());
 }
 
 TEST(spying, can_construct_by_move)
@@ -96,12 +97,12 @@ TEST(spying, can_copy)
 {
     SpiedObject obj1, obj2;
     spy_pointer<SpiedObject> spy1(&obj1), spy2(&obj2);
-    ASSERT_TRUE(obj1.is_spied());
-    ASSERT_TRUE(obj2.is_spied());
+    ASSERT_FALSE(obj1.empty());
+    ASSERT_FALSE(obj2.empty());
     spy1 = spy2;
-    EXPECT_FALSE(obj1.is_spied());
+    EXPECT_TRUE(obj1.empty());
     EXPECT_EQ(&obj2, &*spy1);
-    EXPECT_TRUE(obj2.is_spied());
+    EXPECT_FALSE(obj2.empty());
     EXPECT_TRUE(spy2);
 }
 
@@ -109,23 +110,23 @@ TEST(spying, can_move)
 {
     SpiedObject obj1, obj2;
     spy_pointer<SpiedObject> spy1(&obj1), spy2(&obj2);
-    ASSERT_TRUE(obj1.is_spied());
-    ASSERT_TRUE(obj2.is_spied());
+    ASSERT_FALSE(obj1.empty());
+    ASSERT_FALSE(obj2.empty());
     spy1 = std::move(spy2);
-    EXPECT_FALSE(obj1.is_spied());
+    EXPECT_TRUE(obj1.empty());
     EXPECT_EQ(&obj2, &*spy1);
-    EXPECT_TRUE(obj2.is_spied());
+    EXPECT_FALSE(obj2.empty());
     EXPECT_FALSE(spy2);
 }
 
 TEST(spying, can_notify_about_spying_satate_change)
 {
     SpiedObject obj;
-    EXPECT_FALSE(obj.spied_state_in_callback);
+    EXPECT_TRUE(obj.empty_state_in_callback);
     spy_pointer<SpiedObject> spy(&obj);
-    EXPECT_TRUE(obj.spied_state_in_callback);
+    EXPECT_FALSE(obj.empty_state_in_callback);
     spy.reset();
-    EXPECT_FALSE(obj.spied_state_in_callback);
+    EXPECT_TRUE(obj.empty_state_in_callback);
 }
 
 TEST(spying, the_onli_first_and_last_spy_changes_spying_state)
@@ -133,13 +134,13 @@ TEST(spying, the_onli_first_and_last_spy_changes_spying_state)
     SpiedObject obj;
     spy_pointer<SpiedObject> spy1(&obj);
 
-    obj.spied_state_in_callback = false;
+    obj.empty_state_in_callback = true;
     spy_pointer<SpiedObject> spy2(&obj);
-    EXPECT_FALSE(obj.spied_state_in_callback);
+    EXPECT_TRUE(obj.empty_state_in_callback);
 
-    obj.spied_state_in_callback = true;
+    obj.empty_state_in_callback = false;
     spy2.reset();
-    EXPECT_TRUE(obj.spied_state_in_callback);
+    EXPECT_FALSE(obj.empty_state_in_callback);
 }
 
 TEST(spying, can_construct_copy_of_casted_type)
@@ -193,8 +194,8 @@ TEST(spying, spied_object_construction_do_not_copy_spys)
     SpiedObject obj1;
     spy_pointer<SpiedObject> spy(&obj1);
     SpiedObject obj2(obj1);
-    EXPECT_FALSE(obj2.is_spied());
-    EXPECT_TRUE(obj1.is_spied());
+    EXPECT_TRUE(obj2.empty());
+    EXPECT_FALSE(obj1.empty());
     EXPECT_TRUE(spy);
 }
 
@@ -203,8 +204,8 @@ TEST(spying, spied_object_construction_do_not_move_spys)
     SpiedObject obj1;
     spy_pointer<SpiedObject> spy(&obj1);
     SpiedObject obj2(std::move(obj1));
-    EXPECT_FALSE(obj2.is_spied());
-    EXPECT_FALSE(obj1.is_spied());
+    EXPECT_TRUE(obj2.empty());
+    EXPECT_TRUE(obj1.empty());
     EXPECT_FALSE(spy);
 }
 
@@ -214,8 +215,8 @@ TEST(spying, spied_object_copying_do_not_copy_spys)
     spy_pointer<SpiedObject> spy(&obj1);
     SpiedObject obj2;
     obj2 = obj1;
-    EXPECT_FALSE(obj2.is_spied());
-    EXPECT_TRUE(obj1.is_spied());
+    EXPECT_TRUE(obj2.empty());
+    EXPECT_FALSE(obj1.empty());
     EXPECT_TRUE(spy);
 }
 
@@ -225,8 +226,8 @@ TEST(spying, spied_object_moving_do_not_move_spys)
     spy_pointer<SpiedObject> spy(&obj1);
     SpiedObject obj2;
     obj2 = std::move(obj1);
-    EXPECT_FALSE(obj2.is_spied());
-    EXPECT_FALSE(obj1.is_spied());
+    EXPECT_TRUE(obj2.empty());
+    EXPECT_TRUE(obj1.empty());
     EXPECT_FALSE(spy);
 }
 

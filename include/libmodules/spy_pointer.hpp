@@ -1,3 +1,4 @@
+/* -*- mode: c++; c-file-style: "bsd"; c++-basic-offset: 4; indent-tabs-mode nil -*- */
 /***************************************************************************************************
 
 Project libmodule
@@ -44,8 +45,6 @@ namespace mtl
         template<typename PointerType>
         friend class spy_pointer;
 
-        // Release all pointers that reference this object and stored in the linked list
-        void clear();
         // List head could be modified in constant object
         mutable spy_pointer<enable_spying>* _list_head = nullptr;
 
@@ -60,14 +59,17 @@ namespace mtl
         virtual ~enable_spying() { clear(); }
 
         enable_spying& operator =(const enable_spying&  other) {                return *this; }
-        enable_spying& operator =(      enable_spying&& other) { other.clear(); return * this; }
+        enable_spying& operator =(      enable_spying&& other) { other.clear(); return *this; }
 
         // Child type could by notified when it has new spy or lose the last one. It could overload
         // this signal to perform some specific atcions.
         virtual void on_spying_state_changed() {}
 
     public:
-        bool is_spied() { return !!_list_head; }
+        bool empty() { return !_list_head; }
+
+        // Release all pointers that reference this object and stored in the linked list
+        void clear();
     };
 
     template<typename T>
@@ -154,6 +156,7 @@ namespace mtl
         T* operator->() const { return   _p_object; }
         T& operator *() const { return  *_p_object; }
         T* get()        const { return   _p_object; }
+        operator   T*() const { return   _p_object; }
 
         template<typename other_type>
         bool operator ==(spy_pointer<other_type>& other)
