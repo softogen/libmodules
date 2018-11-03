@@ -2,9 +2,13 @@ cmake_minimum_required(VERSION 3.4)
 project(libmodules)
 
 set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/dependencies/cmake-modules")
 
-set (GTestDir "dependencies/gtest")
+set (GTestDir "${PROJECT_SOURCE_DIR}/dependencies/gtest")
 add_subdirectory("${GTestDir}")
+set (GTEST_INCLUDE_DIR  "${gmock_SOURCE_DIR}/include"
+                        "${gmock_SOURCE_DIR}"
+                        "${gtest_SOURCE_DIR}/include")
 set (GTEST_LIBRARY      "${gmock_BINARY_DIR}/libgmock.a")
 set (GTEST_MAIN_LIBRARY "${gmock_BINARY_DIR}/libgmock_main.a")
 
@@ -37,4 +41,15 @@ target_link_libraries(libmodules_unit_test
   ${CMAKE_THREAD_LIBS_INIT}
   libmodules
 )
-gtest_add_tests(TARGET libmodules_unit_test)
+
+gtest_add_tests(libmodules_unit_test "" AUTO)
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+    include(CodeCoverage)
+    APPEND_COVERAGE_COMPILER_FLAGS()
+    set(COVERAGE_LCOV_EXCLUDES '/usr/*' 'gtest/*')
+    SETUP_TARGET_FOR_COVERAGE_LCOV(
+        NAME ${PROJECT_NAME}_coverage
+        EXECUTABLE libmodules_unit_test
+        DEPENDENCIES libmodules_unit_test)
+endif()
