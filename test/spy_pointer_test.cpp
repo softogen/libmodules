@@ -25,7 +25,6 @@ struct SpiedObject
     : public enable_spying
 {
     bool empty_state_in_callback = true;
-    virtual void foo() {}
     virtual void on_spying_state_changed() { empty_state_in_callback = empty(); }
 };
 
