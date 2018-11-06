@@ -5,7 +5,7 @@ compiler:
 
 matrix:
   include:
-  - env: GCC_VERSION=5
+  - env: GCC_VERSION=7
     os: linux
     compiler: g++-7
     addons:
@@ -14,6 +14,7 @@ matrix:
           - ubuntu-toolchain-r-test
         packages:
           - g++-7
+          - lcov
 
 before_script:
   - mkdir _build
@@ -21,4 +22,9 @@ before_script:
   - cmake ..
 
 script:
-  - cmake --build . && cmake --build . --target test
+  - cmake --build . && cmake --build . --target libmodules_coverage
+
+after_success:
+  # Uploading report to CodeCov
+  - cd libmodules_coverage
+  - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
