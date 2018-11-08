@@ -5,18 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- [ ] Enable CodeCov to test project
 - [ ] Enable packet managers
 - [ ] Add badjes and descriptions
 - [ ] Enable automatic documentation generation (doxygen??? doxygen!!!)
 - [ ] Update readme file with correct content
+- [x] Enable CodeCov to test project
 - [x] Initialization of github project by required files and features
 - [x] Version file
 
 ### added
- - Emitter template as main part of signal module in [emitter.hpp](include/libmodules/emitter.hpp)
-
-### added
+- Enable LCov to perform code coverage and [CodeCov](https://codecov.io/) to represent results
+- Emitter template as main part of signal module in [emitter.hpp](include/libmodules/emitter.hpp)
 - Weak pointer implementation in [spy_pointer.hpp](include/libmodules/spy_pointer.hpp)
 - Enable Travis CI to buil project by G++ 7 and run gtest
 
@@ -29,9 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Directory structure
 ```
   libmodules
-    CMake
-      CMakeList.txt
-      CTestConfig.cmake
+    CMakeList.txt
     include/
       libmodules/
         ...

@@ -31,14 +31,14 @@ struct test_signals
     virtual ~test_signals() {}
     bool received = false;
 
-    virtual void some_signal() {}
-    virtual void attach(emitter<test_signals>& em, test_receiver& r) {}
-    virtual void detach(emitter<test_signals>& em, test_receiver& r) {}
-    virtual void detach_all(emitter<test_signals>& em) {}
-    virtual void delete_receiver(shared_ptr<test_receiver>& r) {}
-    virtual void delete_emitter(shared_ptr<emitter<test_signals>>& em) {}
-    virtual void throw_at(size_t& count_down) {}
-    virtual void send_signal(emitter<test_signals>& em, packed_signal<test_signals> s) {}
+    virtual void some_signal() = 0;
+    virtual void attach(emitter<test_signals>& em, test_receiver& r) = 0;
+    virtual void detach(emitter<test_signals>& em, test_receiver& r) = 0;
+    virtual void detach_all(emitter<test_signals>& em) = 0;
+    virtual void delete_receiver(shared_ptr<test_receiver>& r) = 0;
+    virtual void delete_emitter(shared_ptr<emitter<test_signals>>& em) = 0;
+    virtual void throw_at(size_t& count_down) = 0;
+    virtual void send_signal(emitter<test_signals>& em, packed_signal<test_signals> s) = 0;
 };
 
 struct test_receiver

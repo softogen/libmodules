@@ -5,7 +5,7 @@
 
 It should be C++ template library with tools useful to create modules, connect them to each other by signal tables and transmit signals by different channels
 
-[license-badge]:   https://img.shields.io/hexpm/l/:package.svg
+[license-badge]:   https://img.shields.io/badge/license-Apache%202.0-007EC7.svg
 [travis-badge]:    https://travis-ci.org/softogen/libmodules.svg?branch=master
 [travis-link]:     https://travis-ci.org/softogen/libmodules
 [codecov-badge]:   https://codecov.io/gh/softogen/libmodules/branch/master/graph/badge.svg
