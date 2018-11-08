@@ -58,6 +58,14 @@ struct test_receiver
                                                                         { em.send(s); }
 };
 
+struct test_proxy
+    : public transmitter<test_signals>
+{
+    virtual void transmit_signal(const packed_signal<test_signals>& call) { call(_receiver); }
+    
+    test_receiver _receiver;
+};
+
 TEST(emitting, can_attach_and_detach_receivers)
 {
     emitter<test_signals> em;
@@ -185,6 +193,26 @@ TEST(emitting, cna_forward_signals)
     em.attach(r);
     EXPECT_TRUE(em.send(packed_signal<test_signals>(bind(&test_signals::some_signal, placeholders::_1))));
     EXPECT_TRUE(r.received);
+}
+
+TEST(emitting, forwardint_nothing_is_not_an_error)
+{
+    emitter<test_signals> em;
+    test_receiver r;
+
+    em.attach(r);
+    EXPECT_NO_THROW(em.send(packed_signal<test_signals>()));
+    EXPECT_FALSE(r.received);
+}
+
+TEST(emitting, can_forward_signals_through_proxy)
+{
+    emitter<test_signals> em;
+    test_proxy p;
+
+    em.attach(p);
+    EXPECT_TRUE(em.send(&test_signals::some_signal));
+    EXPECT_TRUE(p._receiver.received);
 }
 
 TEST(emitting, can_attach_while_sending)
