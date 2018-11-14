@@ -17,27 +17,28 @@ License.
 ***************************************************************************************************/
 #pragma once
 
-#include "signal.hpp"
+#include "emitter.hpp"
 
 namespace mtl
 {
     // This file is to implement signal transmission feature. Please see signal.hpp for details.
-    // This file contains Receiver templates implementation that process signals received from
-    // corresponded transmitter.
+    // This file contains Proxy Receiver templates implementation that transfer signal received
+    // from transmitter to another emitter and resend it.
 
     // Simple receiver implementation. It just implement signal table and perform signal
     // immediately.
     template<typename signal_table>
-    class receiver
-        : public signal_table
-        , public transmitter<signal_table>
+    class proxy_receiver
+        : public transmitter<signal_table>
+        , public emitter<signal_table>
     {
     public:
-        receiver() : transmitter<signal_table>(this) {}
-        receiver(const receiver& other) : receiver() {}
-        receiver(const receiver&& other) : receiver() {}
-
-        receiver& operator=(const receiver& other) { return *this; }
-        receiver& operator=(const receiver&& other) { return *this; }
+        virtual void transmit_signal(const packed_signal<signal_table>& call) { this->send(call); }
     };
+
+    // Filter receiver is able to filter or change signal while transfering. It inherit
+    // signal_table and perfos signals before the transmission. That signal processing can perform
+    // some computation with signal parameters, cancel transmission by calncel() method and resend
+    // signal with changed parameters.
+
 } // namespace mtl

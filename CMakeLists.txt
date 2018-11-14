@@ -33,10 +33,12 @@ add_executable(libmodules_unit_test
   include/libmodules/signal.hpp
   include/libmodules/emitter.hpp
   include/libmodules/receiver.hpp
+  include/libmodules/proxy_receiver.hpp
   test/linked_list_test.cpp
   test/spy_pointer_test.cpp
   test/emitter_test.cpp
   test/receiver_test.cpp
+  test/proxy_receiver_test.cpp
 )
 
 # Link test executable against gtest & gtest_main
