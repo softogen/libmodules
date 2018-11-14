@@ -82,7 +82,7 @@ namespace mtl
         template<typename other_type>
         friend class spy_pointer;
         // Object should be able to release the pointer and exclue it from the list
-        friend class base_type;
+        friend base_type;
 
         T* _p_object = nullptr;
 
