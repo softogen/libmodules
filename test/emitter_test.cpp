@@ -26,49 +26,49 @@ using namespace std;
 
 struct test_receiver;
 
-struct test_signals
+struct test_emitter_signals
 {
-    virtual ~test_signals() {}
+    virtual ~test_emitter_signals() {}
     bool received = false;
 
     virtual void some_signal() = 0;
-    virtual void attach(emitter<test_signals>& em, test_receiver& r) = 0;
-    virtual void detach(emitter<test_signals>& em, test_receiver& r) = 0;
-    virtual void detach_all(emitter<test_signals>& em) = 0;
+    virtual void attach(emitter<test_emitter_signals>& em, test_receiver& r) = 0;
+    virtual void detach(emitter<test_emitter_signals>& em, test_receiver& r) = 0;
+    virtual void detach_all(emitter<test_emitter_signals>& em) = 0;
     virtual void delete_receiver(shared_ptr<test_receiver>& r) = 0;
-    virtual void delete_emitter(shared_ptr<emitter<test_signals>>& em) = 0;
+    virtual void delete_emitter(shared_ptr<emitter<test_emitter_signals>>& em) = 0;
     virtual void throw_at(size_t& count_down) = 0;
-    virtual void send_signal(emitter<test_signals>& em, packed_signal<test_signals> s) = 0;
+    virtual void send_signal(emitter<test_emitter_signals>& em, packed_signal<test_emitter_signals> s) = 0;
 };
 
 struct test_receiver
-    : public test_signals
-    , public transmitter<test_signals>
+    : public test_emitter_signals
+    , public transmitter<test_emitter_signals>
 {
-    test_receiver() : transmitter<test_signals>(this) {}
+    test_receiver() : transmitter<test_emitter_signals>(this) {}
 
     void some_signal() override                                         { received = true; }
-    void attach(emitter<test_signals>& em, test_receiver& r) override   { received = true; if(r.empty()) em.attach(r); } // Recursion is possible here
-    void detach(emitter<test_signals>& em, test_receiver& r) override   { received = true; em.detach(r); }
-    void detach_all(emitter<test_signals>& em) override                 { received = true; em.reset(); }
+    void attach(emitter<test_emitter_signals>& em, test_receiver& r) override   { received = true; if(r.empty()) em.attach(r); } // Recursion is possible here
+    void detach(emitter<test_emitter_signals>& em, test_receiver& r) override   { received = true; em.detach(r); }
+    void detach_all(emitter<test_emitter_signals>& em) override                 { received = true; em.reset(); }
     void delete_receiver(shared_ptr<test_receiver>& r) override         { received = true; r.reset(); }
-    void delete_emitter(shared_ptr<emitter<test_signals>>& em) override { received = true; em.reset(); }
+    void delete_emitter(shared_ptr<emitter<test_emitter_signals>>& em) override { received = true; em.reset(); }
     void throw_at(size_t& count_down) override                          { received = true; if (!--count_down) throw runtime_error("Something bad happened."); }
-    void send_signal(emitter<test_signals>& em, packed_signal<test_signals> s) override 
+    void send_signal(emitter<test_emitter_signals>& em, packed_signal<test_emitter_signals> s) override 
                                                                         { em.send(s); }
 };
 
 struct test_proxy
-    : public transmitter<test_signals>
+    : public transmitter<test_emitter_signals>
 {
-    virtual void transmit_signal(const packed_signal<test_signals>& call) { call(_receiver); }
+    virtual void transmit_signal(const packed_signal<test_emitter_signals>& call) { call(_receiver); }
     
     test_receiver _receiver;
 };
 
 TEST(emitting, can_attach_and_detach_receivers)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
     EXPECT_TRUE(em.empty());
     EXPECT_TRUE(r1.empty());
@@ -97,11 +97,11 @@ TEST(emitting, can_attach_and_detach_receivers)
 
 TEST(emitting, emitter_copies_attachments)
 {
-    emitter<test_signals> em1;
+    emitter<test_emitter_signals> em1;
     test_receiver r;
 
     em1.attach(r);
-    emitter<test_signals> em2(em1);
+    emitter<test_emitter_signals> em2(em1);
     em1.detach(r);
     EXPECT_FALSE(em2.empty());
     EXPECT_FALSE(r.empty());
@@ -114,16 +114,16 @@ TEST(emitting, emitter_copies_attachments)
 
 TEST(emitting, emitter_moves_attachments)
 {
-    emitter<test_signals> em1;
+    emitter<test_emitter_signals> em1;
     test_receiver r;
 
     em1.attach(r);
-    emitter<test_signals> em2(std::move(em1));
+    emitter<test_emitter_signals> em2(move(em1));
     EXPECT_TRUE(em1.empty());
     EXPECT_FALSE(em2.empty());
     EXPECT_FALSE(r.empty());
 
-    em1 = std::move(em2);
+    em1 = move(em2);
     EXPECT_TRUE(em2.empty());
     EXPECT_FALSE(em1.empty());
     EXPECT_FALSE(r.empty());
@@ -133,7 +133,7 @@ TEST(emitting, emitter_can_autodetach)
 {
     test_receiver r;
     {
-        emitter<test_signals> em;
+        emitter<test_emitter_signals> em;
         em.attach(r);
     }
     EXPECT_TRUE(r.empty());
@@ -141,7 +141,7 @@ TEST(emitting, emitter_can_autodetach)
 
 TEST(emitting, receiver_can_autodetach)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     {
         test_receiver r;
         em.attach(r);
@@ -151,7 +151,7 @@ TEST(emitting, receiver_can_autodetach)
 
 TEST(emitting, emitter_can_detach_all)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
 
     em.attach(r1);
@@ -164,7 +164,7 @@ TEST(emitting, emitter_can_detach_all)
 
 TEST(emitting, receiver_can_detach_all)
 {
-    emitter<test_signals> em1, em2;
+    emitter<test_emitter_signals> em1, em2;
     test_receiver r;
 
     em1.attach(r);
@@ -177,106 +177,106 @@ TEST(emitting, receiver_can_detach_all)
 
 TEST(emitting, can_send_signals)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r;
 
     em.attach(r);
-    EXPECT_TRUE(em.send(&test_signals::some_signal));
+    EXPECT_TRUE(em.send(&test_emitter_signals::some_signal));
     EXPECT_TRUE(r.received);
 }
 
 TEST(emitting, cna_forward_signals)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r;
 
     em.attach(r);
-    EXPECT_TRUE(em.send(packed_signal<test_signals>(bind(&test_signals::some_signal, placeholders::_1))));
+    EXPECT_TRUE(em.send(packed_signal<test_emitter_signals>(bind(&test_emitter_signals::some_signal, placeholders::_1))));
     EXPECT_TRUE(r.received);
 }
 
 TEST(emitting, forwardint_nothing_is_not_an_error)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r;
 
     em.attach(r);
-    EXPECT_NO_THROW(em.send(packed_signal<test_signals>()));
+    EXPECT_NO_THROW(em.send(packed_signal<test_emitter_signals>()));
     EXPECT_FALSE(r.received);
 }
 
 TEST(emitting, can_forward_signals_through_proxy)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_proxy p;
 
     em.attach(p);
-    EXPECT_TRUE(em.send(&test_signals::some_signal));
+    EXPECT_TRUE(em.send(&test_emitter_signals::some_signal));
     EXPECT_TRUE(p._receiver.received);
 }
 
 TEST(emitting, can_attach_while_sending)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
     
     em.attach(r1);
-    EXPECT_TRUE(em.send(&test_signals::attach, ref(em), ref(r2)));
+    EXPECT_TRUE(em.send(&test_emitter_signals::attach, ref(em), ref(r2)));
     EXPECT_FALSE(r2.empty());
 }
 
 TEST(emitting, attacment_signal_will_not_be_transmitted_to_attached_receivers)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
 
     em.attach(r1);
-    EXPECT_TRUE(em.send(&test_signals::attach, ref(em), ref(r2)));
+    EXPECT_TRUE(em.send(&test_emitter_signals::attach, ref(em), ref(r2)));
     EXPECT_FALSE(r2.received);
 }
 
 TEST(emitting, can_attach_while_forwarding)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
     
     em.attach(r1);
-    EXPECT_TRUE(em.send(packed_signal<test_signals>(bind(&test_signals::attach, placeholders::_1, ref(em), ref(r2)))));
+    EXPECT_TRUE(em.send(packed_signal<test_emitter_signals>(bind(&test_emitter_signals::attach, placeholders::_1, ref(em), ref(r2)))));
     EXPECT_FALSE(r2.empty());
 }
 
 TEST(emitting, can_detach_while_sending)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
     
     em.attach(r1);
     em.attach(r2);
-    EXPECT_TRUE(em.send(&test_signals::detach, ref(em), ref(r2)));
+    EXPECT_TRUE(em.send(&test_emitter_signals::detach, ref(em), ref(r2)));
     EXPECT_TRUE(r2.empty());
     EXPECT_FALSE(r2.received);
 }
 
 TEST(emitting, can_detach_while_forwarding)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
     
     em.attach(r1);
     em.attach(r2);
-    EXPECT_TRUE(em.send(packed_signal<test_signals>(bind(&test_signals::detach, placeholders::_1, ref(em), ref(r2)))));
+    EXPECT_TRUE(em.send(packed_signal<test_emitter_signals>(bind(&test_emitter_signals::detach, placeholders::_1, ref(em), ref(r2)))));
     EXPECT_TRUE(r2.empty());
     EXPECT_FALSE(r2.received);
 }
 
 TEST(emitting, emitter_can_detach_all_while_sending)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
 
     em.attach(r1);
     em.attach(r2);
-    EXPECT_TRUE(em.send(&test_signals::detach_all, std::ref(em)));
+    EXPECT_TRUE(em.send(&test_emitter_signals::detach_all, ref(em)));
     EXPECT_TRUE(em.empty());
     EXPECT_TRUE(r1.empty());
     EXPECT_TRUE(r1.received);
@@ -286,56 +286,56 @@ TEST(emitting, emitter_can_detach_all_while_sending)
 
 TEST(emitting, can_delete_receiver_while_sending)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     shared_ptr<test_receiver> r = make_shared<test_receiver>();
     
     em.attach(*r);
-    EXPECT_TRUE(em.send(&test_signals::delete_receiver, ref(r)));
+    EXPECT_TRUE(em.send(&test_emitter_signals::delete_receiver, ref(r)));
     EXPECT_TRUE(em.empty());
 }
 
 TEST(emitting, can_delete_emitter_while_sending)
 {
-    shared_ptr<emitter<test_signals>> em = make_shared<emitter<test_signals>>();
+    shared_ptr<emitter<test_emitter_signals>> em = make_shared<emitter<test_emitter_signals>>();
     test_receiver r;
     
     em->attach(r);
-    EXPECT_FALSE(em->send(&test_signals::delete_emitter, ref(em)));
+    EXPECT_FALSE(em->send(&test_emitter_signals::delete_emitter, ref(em)));
     EXPECT_TRUE(r.empty());
 }
 
 TEST(emitting, can_delete_emitter_while_recursive_sending)
 {
-    shared_ptr<emitter<test_signals>> em = make_shared<emitter<test_signals>>();
+    shared_ptr<emitter<test_emitter_signals>> em = make_shared<emitter<test_emitter_signals>>();
     test_receiver r;
     
     em->attach(r);
-    EXPECT_FALSE(em->send(&test_signals::send_signal, ref(*em), packed_signal<test_signals>(bind(&test_signals::delete_emitter, placeholders::_1, ref(em)))));
+    EXPECT_FALSE(em->send(&test_emitter_signals::send_signal, ref(*em), packed_signal<test_emitter_signals>(bind(&test_emitter_signals::delete_emitter, placeholders::_1, ref(em)))));
     EXPECT_TRUE(r.empty());
 }
 
 TEST(emitting, can_interrupt_sending_by_exception_throwing)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
     size_t counter = 1;
     
     em.attach(r1);
     em.attach(r2);
-    EXPECT_THROW(em.send(&test_signals::throw_at, ref(counter)), runtime_error);
+    EXPECT_THROW(em.send(&test_emitter_signals::throw_at, ref(counter)), runtime_error);
     EXPECT_TRUE(r1.received);
     EXPECT_FALSE(r2.received);
 }
 
 TEST(emitting, can_interrupt_recursive_sending_by_exception_throwing)
 {
-    emitter<test_signals> em;
+    emitter<test_emitter_signals> em;
     test_receiver r1, r2;
     size_t counter = 1;
     
     em.attach(r1);
     em.attach(r2);
-    EXPECT_THROW(em.send(&test_signals::send_signal, ref(em), packed_signal<test_signals>(bind(&test_signals::throw_at, placeholders::_1, ref(counter)))), runtime_error);
+    EXPECT_THROW(em.send(&test_emitter_signals::send_signal, ref(em), packed_signal<test_emitter_signals>(bind(&test_emitter_signals::throw_at, placeholders::_1, ref(counter)))), runtime_error);
     EXPECT_TRUE(r1.received);
     EXPECT_FALSE(r2.received);
 }

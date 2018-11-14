@@ -30,10 +30,13 @@ add_executable(libmodules_unit_test
   include/libmodules/lockable.hpp
   include/libmodules/linked_list.hpp
   include/libmodules/spy_pointer.hpp
+  include/libmodules/signal.hpp
   include/libmodules/emitter.hpp
+  include/libmodules/receiver.hpp
   test/linked_list_test.cpp
   test/spy_pointer_test.cpp
   test/emitter_test.cpp
+  test/receiver_test.cpp
 )
 
 # Link test executable against gtest & gtest_main
