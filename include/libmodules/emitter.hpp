@@ -97,7 +97,8 @@ namespace mtl
             packed_signal<signal_table> call;
 
             // Do not use iterators here because _transmitters could grow.
-            for (size_t i = 0; i < _transmitters.size(); ++i) {
+            size_t count = _transmitters.size();
+            for (size_t i = 0; i < count; ++i) {
                 auto& transmitter = _transmitters[i];
                 if (!transmitter)
                     continue;

@@ -223,7 +223,16 @@ TEST(emitting, can_attach_while_sending)
     em.attach(r1);
     EXPECT_TRUE(em.send(&test_signals::attach, ref(em), ref(r2)));
     EXPECT_FALSE(r2.empty());
-    EXPECT_TRUE(r2.received);
+}
+
+TEST(emitting, attacment_signal_will_not_be_transmitted_to_attached_receivers)
+{
+    emitter<test_signals> em;
+    test_receiver r1, r2;
+
+    em.attach(r1);
+    EXPECT_TRUE(em.send(&test_signals::attach, ref(em), ref(r2)));
+    EXPECT_FALSE(r2.received);
 }
 
 TEST(emitting, can_attach_while_forwarding)
@@ -234,7 +243,6 @@ TEST(emitting, can_attach_while_forwarding)
     em.attach(r1);
     EXPECT_TRUE(em.send(packed_signal<test_signals>(bind(&test_signals::attach, placeholders::_1, ref(em), ref(r2)))));
     EXPECT_FALSE(r2.empty());
-    EXPECT_TRUE(r2.received);
 }
 
 TEST(emitting, can_detach_while_sending)
