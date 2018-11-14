@@ -3,6 +3,9 @@ project(libmodules)
 
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/dependencies/cmake-modules")
+set(gtest_force_shared_crt ON)
+
+add_definitions(-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
 
 set (GTestDir "${PROJECT_SOURCE_DIR}/dependencies/gtest")
 add_subdirectory("${GTestDir}")

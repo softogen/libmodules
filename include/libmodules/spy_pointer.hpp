@@ -76,17 +76,18 @@ namespace mtl
     class spy_pointer
         : private enable_linking_in_list<spy_pointer<enable_spying>>
     {
+        using base_type = enable_linking_in_list<spy_pointer<enable_spying>>;
+
         // Pointers could point to different type casts of one object
         template<typename other_type>
         friend class spy_pointer;
         // Object should be able to release the pointer and exclue it from the list
-        friend class enable_linking_in_list;
+        friend class base_type;
 
         T* _p_object = nullptr;
 
     public:
         using type = spy_pointer<T>;
-        using base_type = enable_linking_in_list<spy_pointer<enable_spying>>;
 
         spy_pointer(T* p_object = nullptr)
             : _p_object(p_object)

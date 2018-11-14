@@ -47,3 +47,5 @@ CTestTestfile.cmake
 # Some editors configs
 *.geany
 *~
+.vs
+CMakeSettings.json
