@@ -41,4 +41,24 @@ namespace mtl
     // some computation with signal parameters, cancel transmission by calncel() method and resend
     // signal with changed parameters.
 
+    template<typename signal_table>
+    class filter_proxy_receiver
+        : public signal_table
+        , public proxy_receiver<signal_table>
+    {
+        bool _is_signal_filtered = false;
+
+    protected:
+        void filter_signal() { _is_signal_filtered = true; }
+
+    public:
+        virtual void transmit_signal(const packed_signal<signal_table>& call)
+        {
+            _is_signal_filtered = false;
+            call(*this);
+            if (!_is_signal_filtered)
+                proxy_receiver<signal_table>::transmit_signal(call);
+        }
+    };
+
 } // namespace mtl

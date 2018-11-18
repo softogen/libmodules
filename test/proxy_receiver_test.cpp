@@ -51,3 +51,43 @@ TEST(proxy_receiver, can_transmit_signals)
     p.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
     EXPECT_TRUE(r.received);
 }
+
+struct test_filter_proxy_receiver
+    : public filter_proxy_receiver<test_proxy_receiver_signals>
+{
+    bool do_filtering = false;
+
+    void some_signal() override
+    {
+        received = true;
+        if (do_filtering)
+            this->filter_signal();
+    }
+};
+
+TEST(proxy_receiver, can_perform_filter_signal)
+{
+    test_filter_proxy_receiver f;
+    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    EXPECT_TRUE(f.received);
+}
+
+TEST(proxy_receiver, can_pass_signal)
+{
+    test_filter_proxy_receiver f;
+    test_simple_receiver r;
+    f.attach(r);
+    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    EXPECT_TRUE(r.received);
+}
+
+TEST(proxy_receiver, can_filter_signal)
+{
+    test_filter_proxy_receiver f;
+    f.do_filtering = true;
+
+    test_simple_receiver r;
+    f.attach(r);
+    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    EXPECT_FALSE(r.received);
+}
