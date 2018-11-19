@@ -27,11 +27,11 @@ namespace mtl
     // library:
     // Signal - some occasion for concerted action which can be accompanied by some information
     // Signal table - group of signals represented as one virtual interface
-    // Emitter - object that can emitt signals from specified signal table
+    // Emitter - object that can emit signals from specified signal table
     // Transmitter - object that can be attach to emitter and can catch it's signals
-    // Receiver - Implementation of reaction to the signals catched by transmitter
+    // Receiver - Implementation of reaction to the signals were catch by transmitter
     //
-    // General usecase of the library is to:
+    // General use case of the library is to:
     // - Declare signal table as virtual interface with empty void functions
     // - Inherit YourClass from emitter<signal_table>
     // - Send signals like send(&signal_table::signal_name, args...);
@@ -39,11 +39,11 @@ namespace mtl
     //   override functions
     // - Do YourClass.attach(YourListenerClasses)
     //
-    // More complicatd case could use packed signals - callable object, that could be stored,
-    // tranfered and processed in muliple ways without detailed signal specification. For example
+    // More complicated case could use packed signals - callable object, that could be stored,
+    // transfered and processed in multiple ways without detailed signal specification. For example
     // receiver could store packed signals in the queue to process them in the other thread.
     //
-    // You cna attach multiple receivers to one emitter or one receiver to multiple emitters.
+    // You can attach multiple receivers to one emitter or one receiver to multiple emitters.
     // Multiple inheritance could be used to receive signals from emitters of different types.
     // Method send could return false in case if emitter instance is destroyed while sending.
 
@@ -70,7 +70,7 @@ namespace mtl
         bool empty() { return enable_spying::empty(); }
 
         // Unpack packed signal and transmit it to the receiver
-        // This method could be overrided to specify transmission
+        // This method could be overridden to specify transmission
         virtual void transmit_signal(const packed_signal<signal_table>& call)
         {
             if (!_receiver)

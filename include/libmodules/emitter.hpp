@@ -63,8 +63,8 @@ namespace mtl
             if (it == _transmitters.rend())
                 return;
 
-            // Hahdle spy pointer to self instance to cleanup transmitters list at the end of all
-            // recursive broadcastin and detaching processes.
+            // Handle spy pointer to self instance to cleanup transmitters list at the end of all
+            // recursive broadcasting and detaching processes.
             handle_type self(this);
             it->reset();
         }
@@ -79,8 +79,8 @@ namespace mtl
 
         void reset()
         {
-            // Hahdle spy pointer to self instance to cleanup transmitters list at the end of all
-            // recursive broadcastin and detaching processes.
+            // Handle spy pointer to self instance to cleanup transmitters list at the end of all
+            // recursive broadcasting and detaching processes.
             handle_type self(this);
 
             for (auto& transmitter : _transmitters)
@@ -92,7 +92,7 @@ namespace mtl
         template<typename FnType, typename... Args>
         bool send(FnType signal_name, Args&&... args)
         {
-            // Hahdle spy pointer to self instance to catch self desctruction inside the
+            // Handle spy pointer to self instance to catch self destruction inside the
             // broadcasting loop.
             handle_type self(this);
             packed_signal<signal_table> call;
@@ -104,7 +104,7 @@ namespace mtl
                 if (!transmitter)
                     continue;
 
-                // Send signal directly if transmitter provedes receiver
+                // Send signal directly if transmitter provides receiver
                 if (transmitter->get()) {
                     (transmitter->get()->*signal_name)(std::forward<Args>(args)...);
                 }
@@ -127,7 +127,7 @@ namespace mtl
             if (!call)
                 return true;
             
-            // Hahdle spy pointer to self instance to catch self desctruction inside the
+            // Handle spy pointer to self instance to catch self destruction inside the
             // broadcasting loop.
             handle_type self(this);
 

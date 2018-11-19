@@ -22,19 +22,20 @@ License.
 
 namespace mtl
 {
-    // Spy pointer is a kind of autopointer that is close to std::weak_ptr. It does not take
+    // Spy pointer is a kind of auto pointer that is close to std::weak_ptr. It does not take
     // ownership on referenced object but resets itself when object is destroyed.
     //
-    // It could point object placed in any kinde of memory: global scope, stack or heap. It also
+    // It could point object placed in any kind of memory: global scope, stack or heap. It also
     // works fine with objects stored as local members of other objects.
     //
-    // Threre is not magic here. Pointed object have to store a linked list of all spy pointers that
-    // are reference it. At the destruction moment the object release all pointers in the list. Ths
-    // architecture defines the main limit of this pointer: it could not be used in multythreading
-    // environment. The only single thred could owner the linked list of spy pointers.
+    // There is not magic here. Pointed object have to store a linked list of all spy pointers that
+    // are reference it. At the destruction moment the object release all pointers in the list.
+    // This architecture defines the main limit of this pointer: it could not be used in
+    // multi-threading environment. The only single thread could owner the linked list of spy
+    // pointers.
     //
     // The pointer object should inherit enable_spying class to handle pointer's linked list and
-    // implement required behaviour. The spy pointer template should be specialized by pointer
+    // implement required behavior. The spy pointer template should be specialized by pointer
     // object type.
 
     template<typename T>
@@ -50,10 +51,10 @@ namespace mtl
         mutable spy_pointer<enable_spying>* _list_head = nullptr;
 
     protected:
-        // Constructors, destrutor and copy operators has nothing specific. They take no ownership
+        // Constructors, destructor and copy operators has nothing specific. They take no ownership
         // of linked list from other object, but clears other object in case if it was moved. It
         // means that spy pointer operates like regular pointer and do not follow to object if it
-        // was copyed or moved.
+        // was copied or moved.
         enable_spying() = default;
         enable_spying(const enable_spying&  other) {}
         enable_spying(      enable_spying&& other) { other.clear(); }
@@ -63,7 +64,7 @@ namespace mtl
         enable_spying& operator =(      enable_spying&& other) { other.clear(); return *this; }
 
         // Child type could by notified when it has new spy or lose the last one. It could overload
-        // this signal to perform some specific atcions.
+        // this signal to perform some specific actions.
         virtual void on_spying_state_changed() {}
 
     public:
@@ -82,7 +83,7 @@ namespace mtl
         // Pointers could point to different type casts of one object
         template<typename other_type>
         friend class spy_pointer;
-        // Object should be able to release the pointer and exclue it from the list
+        // Object should be able to release the pointer and exclude it from the list
         friend base_type;
 
         T* _p_object = nullptr;
@@ -110,7 +111,7 @@ namespace mtl
 
             // Exclude itself from the list 
             unlink();
-            // There should no any spy pointed to the object while we notyfying the object
+            // There should no any spy pointed to the object while we notifying the object
             // Yes, this object also should be released
             // So, we clen member pointer before we call notification callback
             T* tmp_ptr = _p_object;
@@ -167,7 +168,8 @@ namespace mtl
         }
     };
 
-    // The clear method has to be defined after the spy_pointer class definition to be able access it's members.
+    // The clear method has to be defined after the spy_pointer class definition to be able access
+    // it's members.
     inline void enable_spying::clear()
     {
         while(_list_head)

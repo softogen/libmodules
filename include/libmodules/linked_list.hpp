@@ -21,17 +21,17 @@ License.
 
 namespace mtl
 {
-    // Linked list is a technique that allows to linkd multiple objects in order one by one.  It
+    // Linked list is a technique that allows to linked multiple objects in order one by one.  It
     // isn't a container for objects like vector or list. It' doesn't handle lifetime of linked
     // objects. It contains nothing and just setup rules how objects points to each other.
     //
-    //   The main idea is to organise objects in bidirctional list where each object has pointer to
-    // the next and previous one in the row. This construction has one problem place at the head of
-    // the list. Each list method should cover some exception case and fix pointer to the head.
+    //   The main idea is to organize objects in bidirectional list where each object has pointer
+    // to the next and previous one in the row. This construction has one problem place at the head
+    // of the list. Each list method should cover some exception case and fix pointer to the head.
     //
-    //   I didn't meet any case in my ptactice when I required backward iterationsthrough the list.
-    // So, I decided to use back pointer in a different way to simplify the algorithms. Each element
-    // points back to the simple pointer to this object but not whole previous object.
+    //   I didn't meet any case in my practice when I required backward iterations through the
+    // list. So, I decided to use back pointer in a different way to simplify the algorithms. Each
+    // element points back to the simple pointer to this object but not whole previous object.
     //
     //          ---------    ---------
     // _next -> | _next-+--->| _next | ...
@@ -42,17 +42,17 @@ namespace mtl
     //          ---------    ---------
     //
     // This data structure has no difference between previous item and pointer to the list head.
-    // Each item is the had of the sublist. It simplifies list method dramaticaly.
+    // Each item is the had of the sublist. It simplifies list method dramatically.
     //
     //   Objects in the linked list are managed outside of the list. It means, that they could be
-    // placed evrewhere in the memory. They could be in the heap or at the program stack. Morother
+    // placed everywhere in the memory. They could be in the heap or at the program stack. Morother
     // they could be a member of other objects. Linked list is just connect them to each other.
     // This fact allows to link different type objects. The only base virtual interface could be
     // linked into the list.
 
     // The linked object have to inherit from the linked list class to enable required
-    // functionality.  The linked list takes object type as a template parameter to hide static cast
-    // and increase usability.
+    // functionality.  The linked list takes object type as a template parameter to hide static
+    // cast and increase usability.
     template<typename T>
     class enable_linking_in_list
     {
