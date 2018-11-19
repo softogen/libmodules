@@ -15,8 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ******************************************************************************/
-
-#include <functional>
+#pragma once
 
 namespace mtl
 {
@@ -24,20 +23,5 @@ namespace mtl
     {
         void lock() {}
         void unlock() {}
-    };
-
-    struct I_locable
-    {
-        virtual void lock() = 0;
-        virtual void unlock() = 0;
-    };
-
-    struct interface_locker
-    {
-        interface_locker(I_locable& locker) : _locker(locker) {}
-        void lock() { _locker.get().lock(); }
-        void unlock() { _locker.get().unlock(); }
-    private:
-        std::reference_wrapper<I_locable> _locker;
     };
 }
