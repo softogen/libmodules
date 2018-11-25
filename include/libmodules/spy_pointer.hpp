@@ -83,7 +83,7 @@ namespace mtl
         using base_type = enable_linking_in_list<spy_pointer<Base>>;
 
         // Pointers could point to different type casts of one object
-        template<typename other_type, typename Base>
+        template<typename other_type, typename OtherBase>
         friend class spy_pointer;
         // Object should be able to release the pointer and exclude it from the list
         friend base_type;
@@ -101,9 +101,9 @@ namespace mtl
 
             enable_spying<Base>* tmp = _p_object;
             // Place the pointer at the head of the linked list
-            insert(tmp->_list_head);
+            this->insert(tmp->_list_head);
             // If it is the first spy we should notify the object
-            if(!next())
+            if(!this->next())
                 tmp->on_spying_state_changed();
         }
 
@@ -113,7 +113,7 @@ namespace mtl
                 return;
 
             // Exclude itself from the list 
-            unlink();
+            this->unlink();
             // There should no any spy pointed to the object while we notifying the object
             // Yes, this object also should be released
             // So, we clen member pointer before we call notification callback
