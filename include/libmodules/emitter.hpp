@@ -30,7 +30,7 @@ namespace mtl
 
     template<typename signal_table>
     class emitter
-        : private enable_spying
+        : private enable_spying<emitter<signal_table>>
     {
         using handle_type = spy_pointer<emitter<signal_table>>;
         using transmitter_type = transmitter<signal_table>;
@@ -87,7 +87,7 @@ namespace mtl
                 transmitter.reset();
         }
 
-        bool sending() { return !enable_spying::empty(); }
+        bool sending() { return !enable_spying<emitter<signal_table>>::empty(); }
 
         template<typename FnType, typename... Args>
         bool send(FnType signal_name, Args&&... args)

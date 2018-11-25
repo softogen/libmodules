@@ -38,17 +38,19 @@ namespace mtl
     // implement required behavior. The spy pointer template should be specialized by pointer
     // object type.
 
-    template<typename T>
+    template<typename T, typename Base = T>
     class spy_pointer;
 
+    // Template specialization is used to resolve ambiguous calls in case of multiple inheritance.
+    template<typename T>
     class enable_spying
     {
         // Pointers should be able to add itself in the linked list
-        template<typename PointerType>
+        template<typename PointerType, typename Base>
         friend class spy_pointer;
 
         // List head could be modified in constant object
-        mutable spy_pointer<enable_spying>* _list_head = nullptr;
+        mutable spy_pointer<T>* _list_head = nullptr;
 
     protected:
         // Constructors, destructor and copy operators has nothing specific. They take no ownership
@@ -56,12 +58,12 @@ namespace mtl
         // means that spy pointer operates like regular pointer and do not follow to object if it
         // was copied or moved.
         enable_spying() = default;
-        enable_spying(const enable_spying&  other) {}
-        enable_spying(      enable_spying&& other) { other.clear(); }
+        enable_spying(const enable_spying<T>&  other) {}
+        enable_spying(      enable_spying<T>&& other) { other.clear(); }
         virtual ~enable_spying() { clear(); }
 
-        enable_spying& operator =(const enable_spying&  other) {                return *this; }
-        enable_spying& operator =(      enable_spying&& other) { other.clear(); return *this; }
+        enable_spying<T>& operator =(const enable_spying<T>&  other) {                return *this; }
+        enable_spying<T>& operator =(      enable_spying<T>&& other) { other.clear(); return *this; }
 
         // Child type could by notified when it has new spy or lose the last one. It could overload
         // this signal to perform some specific actions.
@@ -74,14 +76,14 @@ namespace mtl
         void clear();
     };
 
-    template<typename T>
+    template<typename T, typename Base>
     class spy_pointer
-        : private enable_linking_in_list<spy_pointer<enable_spying>>
+        : private enable_linking_in_list<spy_pointer<Base>>
     {
-        using base_type = enable_linking_in_list<spy_pointer<enable_spying>>;
+        using base_type = enable_linking_in_list<spy_pointer<Base>>;
 
         // Pointers could point to different type casts of one object
-        template<typename other_type>
+        template<typename other_type, typename Base>
         friend class spy_pointer;
         // Object should be able to release the pointer and exclude it from the list
         friend base_type;
@@ -89,7 +91,7 @@ namespace mtl
         T* _p_object = nullptr;
 
     public:
-        using type = spy_pointer<T>;
+        using type = spy_pointer<T, Base>;
 
         spy_pointer(T* p_object = nullptr)
             : _p_object(p_object)
@@ -97,11 +99,12 @@ namespace mtl
             if (!_p_object)
                 return;
 
+            enable_spying<Base>* tmp = _p_object;
             // Place the pointer at the head of the linked list
-            insert(_p_object->_list_head);
+            insert(tmp->_list_head);
             // If it is the first spy we should notify the object
             if(!next())
-                _p_object->on_spying_state_changed();
+                tmp->on_spying_state_changed();
         }
 
         ~spy_pointer()
@@ -114,19 +117,19 @@ namespace mtl
             // There should no any spy pointed to the object while we notifying the object
             // Yes, this object also should be released
             // So, we clen member pointer before we call notification callback
-            T* tmp_ptr = _p_object;
+            enable_spying<Base>* tmp = _p_object;
             _p_object = nullptr;
-            if (!tmp_ptr->_list_head)
-                tmp_ptr->on_spying_state_changed();
+            if (!tmp->_list_head)
+                tmp->on_spying_state_changed();
         }
 
         template<typename other_type>
-        type& swap(spy_pointer<other_type>& other)
+        type& swap(spy_pointer<other_type, Base>& other)
         {
             // Swap linked lists
             base_type::swap(other);
             // THen swap pointers
-            T* tmp = _p_object;
+            enable_spying<Base>* tmp = _p_object;
             _p_object = static_cast<T*>(other._p_object);
             other._p_object = static_cast<other_type*>(tmp);
 
@@ -134,23 +137,23 @@ namespace mtl
         }
 
         // The rest of copy constructors, copy operators and other operations
-        spy_pointer(     const type&  other) :                    spy_pointer(other._p_object) {}
+        spy_pointer(     const type&  other) :                          spy_pointer(other._p_object) {}
         template<typename other_type>
-        spy_pointer(const      spy_pointer<other_type>&  other) : spy_pointer(static_cast<T*>(other._p_object)) {}
+        spy_pointer(const      spy_pointer<other_type, Base>&  other) : spy_pointer(static_cast<T*>(other._p_object)) {}
 
-        spy_pointer(           type&& other) {                                                       swap(other); }
+        spy_pointer(           type&& other) {                                                             swap(other); }
         template<typename other_type>
-        spy_pointer(           spy_pointer<other_type>&& other) {                                    swap(other); }
+        spy_pointer(           spy_pointer<other_type, Base>&& other) {                                    swap(other); }
 
-        type& operator =(const type&  other) { type tmp(other);                               return swap(tmp); }
-        type& operator =(      type&& other) { type tmp(std::move(other));                    return swap(tmp); }
+        type& operator =(const type&  other) { type tmp(other);                                     return swap(tmp); }
+        type& operator =(      type&& other) { type tmp(std::move(other));                          return swap(tmp); }
         template<typename other_type>
-        type& operator =(const spy_pointer<other_type>&  other) { type tmp(other);            return swap(tmp); }
+        type& operator =(const spy_pointer<other_type, Base>&  other) { type tmp(other);            return swap(tmp); }
         template<typename other_type>
-        type& operator =(      spy_pointer<other_type>&& other) { type tmp(std::move(other)); return swap(tmp); }
+        type& operator =(      spy_pointer<other_type, Base>&& other) { type tmp(std::move(other)); return swap(tmp); }
 
         template<typename other_type>
-        operator spy_pointer<other_type>() const { return spy_pointer<other_type>(*this); }
+        operator spy_pointer<other_type, Base>() const { return spy_pointer<other_type, Base>(*this); }
 
         type& reset(     T* p_object = nullptr) { type tmp(p_object); return swap(tmp); }
         type& operator =(T* p_object)           { return reset(p_object); }
@@ -162,15 +165,16 @@ namespace mtl
         operator   T*() const { return   _p_object; }
 
         template<typename other_type>
-        bool operator ==(spy_pointer<other_type>& other)
+        bool operator ==(spy_pointer<other_type, Base>& other)
         {
-            return static_cast<enable_spying*>(_p_object) == static_cast<enable_spying*>(other._p_object);
+            return static_cast<enable_spying<Base>*>(_p_object) == static_cast<enable_spying<Base>*>(other._p_object);
         }
     };
 
     // The clear method has to be defined after the spy_pointer class definition to be able access
     // it's members.
-    inline void enable_spying::clear()
+    template<typename T>
+    inline void enable_spying<T>::clear()
     {
         while(_list_head)
             _list_head->reset();

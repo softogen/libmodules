@@ -52,7 +52,7 @@ namespace mtl
 
     template<typename signal_table>
     class transmitter
-        : private enable_spying
+        : private enable_spying<transmitter<signal_table>>
     {
         signal_table* _receiver = nullptr;
         friend class spy_pointer<transmitter<signal_table>>; // Provide access to parent

@@ -29,12 +29,14 @@ struct test_proxy_receiver_signals
     bool received = false;
 
     virtual void some_signal() = 0;
+    virtual void delete_signal(shared_ptr<void>& obj) = 0;
 };
 
 struct test_simple_receiver
     : public receiver<test_proxy_receiver_signals>
 {
     void some_signal() override { received = true; }
+    void delete_signal(shared_ptr<void>& obj) override { obj.reset(); }
 };
 
 TEST(proxy_receiver, has_no_receiver)
@@ -63,16 +65,18 @@ struct test_filter_proxy_receiver
         if (do_filtering)
             this->filter_signal();
     }
+
+    void delete_signal(shared_ptr<void>& obj) override { obj.reset(); }
 };
 
-TEST(proxy_receiver, can_perform_filter_signal)
+TEST(filter_proxy_receiver, can_perform_filter_signal)
 {
     test_filter_proxy_receiver f;
     f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
     EXPECT_TRUE(f.received);
 }
 
-TEST(proxy_receiver, can_pass_signal)
+TEST(filter_proxy_receiver, can_pass_signal)
 {
     test_filter_proxy_receiver f;
     test_simple_receiver r;
@@ -81,7 +85,7 @@ TEST(proxy_receiver, can_pass_signal)
     EXPECT_TRUE(r.received);
 }
 
-TEST(proxy_receiver, can_filter_signal)
+TEST(filter_proxy_receiver, can_filter_signal)
 {
     test_filter_proxy_receiver f;
     f.do_filtering = true;
@@ -90,4 +94,98 @@ TEST(proxy_receiver, can_filter_signal)
     f.attach(r);
     f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
     EXPECT_FALSE(r.received);
+}
+
+TEST(filter_proxy_receiver, can_be_destroyed_by_filter)
+{
+    test_filter_proxy_receiver* f = new test_filter_proxy_receiver();
+    test_simple_receiver r;
+    f->attach(r);
+    shared_ptr<void> obj = shared_ptr<test_filter_proxy_receiver>(f);
+    EXPECT_NO_FATAL_FAILURE(f->transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::delete_signal, placeholders::_1, ref(obj)))));
+    EXPECT_FALSE(r.received);
+}
+
+TEST(queue_proxy_receiver, can_pop_empty_queue)
+{
+    queue_proxy_receiver<test_proxy_receiver_signals> q;
+    test_simple_receiver r;
+    q.attach(r);
+
+    EXPECT_FALSE(q.pop_signal());
+    EXPECT_FALSE(r.received);
+}
+
+TEST(queue_proxy_receiver, can_queue_signal)
+{
+    queue_proxy_receiver<test_proxy_receiver_signals> q;
+    test_simple_receiver r;
+    q.attach(r);
+
+    q.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    EXPECT_FALSE(r.received);
+
+    EXPECT_TRUE(q.pop_signal());
+    EXPECT_TRUE(r.received);
+}
+
+struct test_locker
+{
+    int* _lock_count = nullptr;
+    bool* _was_locked = nullptr;
+
+    test_locker(int* lock_count, bool* was_locked) : _lock_count(lock_count), _was_locked(was_locked) {}
+    test_locker(const test_locker& other) = default;
+    test_locker(test_locker&& other) = default;
+    void lock()
+    {
+        *_was_locked = true;
+        ++*_lock_count;
+    }
+    void unlock()
+    {
+        --*_lock_count;
+        EXPECT_LE(0, *_lock_count);
+    }
+};
+
+TEST(queue_proxy_receiver, can_lock_queue)
+{
+    bool was_locked = false;
+    int lock_count = 0;
+
+    queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q(test_locker(&lock_count, &was_locked));
+    q.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    EXPECT_TRUE(was_locked);
+    EXPECT_EQ(0, lock_count);
+
+    was_locked = false;
+    lock_count = 0;
+    EXPECT_TRUE(q.pop_signal());
+    EXPECT_TRUE(was_locked);
+    EXPECT_EQ(0, lock_count);
+}
+
+TEST(queue_proxy_receiver, can_copy_locker)
+{
+    bool was_locked = false;
+    int lock_count = 0;
+
+    queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q1(test_locker(&lock_count, &was_locked));
+    queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q2(q1);
+    q2.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    EXPECT_TRUE(was_locked);
+    EXPECT_EQ(0, lock_count);
+}
+
+TEST(queue_proxy_receiver, can_move_locker)
+{
+    bool was_locked = false;
+    int lock_count = 0;
+
+    queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q1(test_locker(&lock_count, &was_locked));
+    queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q2(move(q1));
+    q2.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    EXPECT_TRUE(was_locked);
+    EXPECT_EQ(0, lock_count);
 }

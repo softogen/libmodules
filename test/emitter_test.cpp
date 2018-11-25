@@ -35,8 +35,7 @@ struct test_emitter_signals
     virtual void attach(emitter<test_emitter_signals>& em, test_receiver& r) = 0;
     virtual void detach(emitter<test_emitter_signals>& em, test_receiver& r) = 0;
     virtual void detach_all(emitter<test_emitter_signals>& em) = 0;
-    virtual void delete_receiver(shared_ptr<test_receiver>& r) = 0;
-    virtual void delete_emitter(shared_ptr<emitter<test_emitter_signals>>& em) = 0;
+    virtual void delete_obj(shared_ptr<void>& obj) = 0;
     virtual void throw_at(size_t& count_down) = 0;
     virtual void send_signal(emitter<test_emitter_signals>& em, packed_signal<test_emitter_signals> s) = 0;
 };
@@ -47,15 +46,14 @@ struct test_receiver
 {
     test_receiver() : transmitter<test_emitter_signals>(this) {}
 
-    void some_signal() override                                         { received = true; }
-    void attach(emitter<test_emitter_signals>& em, test_receiver& r) override   { received = true; if(r.empty()) em.attach(r); } // Recursion is possible here
-    void detach(emitter<test_emitter_signals>& em, test_receiver& r) override   { received = true; em.detach(r); }
-    void detach_all(emitter<test_emitter_signals>& em) override                 { received = true; em.reset(); }
-    void delete_receiver(shared_ptr<test_receiver>& r) override         { received = true; r.reset(); }
-    void delete_emitter(shared_ptr<emitter<test_emitter_signals>>& em) override { received = true; em.reset(); }
-    void throw_at(size_t& count_down) override                          { received = true; if (!--count_down) throw runtime_error("Something bad happened."); }
+    void some_signal() override                                               { received = true; }
+    void attach(emitter<test_emitter_signals>& em, test_receiver& r) override { received = true; if(r.empty()) em.attach(r); } // Recursion is possible here
+    void detach(emitter<test_emitter_signals>& em, test_receiver& r) override { received = true; em.detach(r); }
+    void detach_all(emitter<test_emitter_signals>& em) override               { received = true; em.reset(); }
+    void delete_obj(shared_ptr<void>& obj) override                           { received = true; obj.reset(); }
+    void throw_at(size_t& count_down) override                                { received = true; if (!--count_down) throw runtime_error("Something bad happened."); }
     void send_signal(emitter<test_emitter_signals>& em, packed_signal<test_emitter_signals> s) override 
-                                                                        { em.send(s); }
+                                                                              { em.send(s); }
 };
 
 struct test_proxy
@@ -287,30 +285,35 @@ TEST(emitting, emitter_can_detach_all_while_sending)
 TEST(emitting, can_delete_receiver_while_sending)
 {
     emitter<test_emitter_signals> em;
-    shared_ptr<test_receiver> r = make_shared<test_receiver>();
+    test_receiver* r = new test_receiver();
     
     em.attach(*r);
-    EXPECT_TRUE(em.send(&test_emitter_signals::delete_receiver, ref(r)));
+    shared_ptr<void> obj = shared_ptr<test_receiver>(r);
+    EXPECT_TRUE(em.send(&test_emitter_signals::delete_obj, ref(obj)));
     EXPECT_TRUE(em.empty());
 }
 
 TEST(emitting, can_delete_emitter_while_sending)
 {
-    shared_ptr<emitter<test_emitter_signals>> em = make_shared<emitter<test_emitter_signals>>();
+    emitter<test_emitter_signals>* em = new emitter<test_emitter_signals>();
     test_receiver r;
     
     em->attach(r);
-    EXPECT_FALSE(em->send(&test_emitter_signals::delete_emitter, ref(em)));
+    shared_ptr<void> obj = shared_ptr<emitter<test_emitter_signals>>(em);
+    EXPECT_FALSE(em->send(&test_emitter_signals::delete_obj, ref(obj)));
     EXPECT_TRUE(r.empty());
 }
 
 TEST(emitting, can_delete_emitter_while_recursive_sending)
 {
-    shared_ptr<emitter<test_emitter_signals>> em = make_shared<emitter<test_emitter_signals>>();
+    emitter<test_emitter_signals>* em = new emitter<test_emitter_signals>();
     test_receiver r;
     
     em->attach(r);
-    EXPECT_FALSE(em->send(&test_emitter_signals::send_signal, ref(*em), packed_signal<test_emitter_signals>(bind(&test_emitter_signals::delete_emitter, placeholders::_1, ref(em)))));
+
+    shared_ptr<void> obj = shared_ptr<emitter<test_emitter_signals>>(em);
+    packed_signal<test_emitter_signals> signal(bind(&test_emitter_signals::delete_obj, placeholders::_1, ref(obj)));
+    EXPECT_FALSE(em->send(&test_emitter_signals::send_signal, ref(*em), signal));
     EXPECT_TRUE(r.empty());
 }
 

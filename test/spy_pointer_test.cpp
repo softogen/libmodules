@@ -22,7 +22,7 @@ License.
 using namespace mtl;
 
 struct SpiedObject
-    : public enable_spying
+    : public enable_spying<SpiedObject>
 {
     bool empty_state_in_callback = true;
     virtual void on_spying_state_changed() { empty_state_in_callback = empty(); }
@@ -37,7 +37,7 @@ struct ChildObject
 TEST(spying, can_dereference_spy)
 {
     ChildObject obj;
-    spy_pointer<ChildObject> spy(&obj);
+    spy_pointer<ChildObject, SpiedObject> spy(&obj);
     ASSERT_TRUE(spy);
     spy->state = true;
     EXPECT_TRUE(obj.state);
@@ -146,7 +146,7 @@ TEST(spying, can_construct_copy_of_casted_type)
 {
     ChildObject obj;
     spy_pointer<SpiedObject> spy1(&obj);
-    spy_pointer<ChildObject> spy2(spy1);
+    spy_pointer<ChildObject, SpiedObject> spy2(spy1);
     spy2->state = true;
     EXPECT_TRUE(obj.state);
 }
@@ -155,7 +155,7 @@ TEST(spying, can_construct_by_move_of_casted_type)
 {
     ChildObject obj;
     spy_pointer<SpiedObject> spy1(&obj);
-    spy_pointer<ChildObject> spy2(std::move(spy1));
+    spy_pointer<ChildObject, SpiedObject> spy2(std::move(spy1));
     spy2->state = true;
     EXPECT_TRUE(obj.state);
 }
@@ -164,7 +164,7 @@ TEST(spying, can_copy_of_casted_type)
 {
     ChildObject obj;
     spy_pointer<SpiedObject> spy1(&obj);
-    spy_pointer<ChildObject> spy2;
+    spy_pointer<ChildObject, SpiedObject> spy2;
     spy2 = spy1;
     spy2->state = true;
     EXPECT_TRUE(obj.state);
@@ -174,7 +174,7 @@ TEST(spying, can_move_casted_type)
 {
     ChildObject obj;
     spy_pointer<SpiedObject> spy1(&obj);
-    spy_pointer<ChildObject> spy2;
+    spy_pointer<ChildObject, SpiedObject> spy2;
     spy2 = std::move(spy1);
     spy2->state = true;
     EXPECT_TRUE(obj.state);
@@ -184,7 +184,7 @@ TEST(spying, can_cast_type)
 {
     ChildObject obj;
     spy_pointer<SpiedObject> spy(&obj);
-    static_cast<spy_pointer<ChildObject>>(spy)->state = true;
+    static_cast<spy_pointer<ChildObject, SpiedObject>>(spy)->state = true;
     EXPECT_TRUE(obj.state);
 }
 
