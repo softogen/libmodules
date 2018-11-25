@@ -20,6 +20,8 @@ License.
 #include <libmodules/receiver.hpp>
 #include <gmock/gmock.h>
 
+#include <memory>
+
 using namespace mtl;
 using namespace std;
 
