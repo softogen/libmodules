@@ -25,20 +25,23 @@ License.
 using namespace mtl;
 using namespace std;
 
+struct test_filter_proxy_receiver;
 struct test_proxy_receiver_signals
 {
     virtual ~test_proxy_receiver_signals() {}
     bool received = false;
 
-    virtual void some_signal() = 0;
-    virtual void delete_signal(shared_ptr<void>& obj) = 0;
+    virtual void some_signal(unique_ptr<test_filter_proxy_receiver>* obj = nullptr) = 0;
 };
 
 struct test_simple_receiver
     : public receiver<test_proxy_receiver_signals>
 {
-    void some_signal() override { received = true; }
-    void delete_signal(shared_ptr<void>& obj) override { obj.reset(); }
+    void some_signal(unique_ptr<test_filter_proxy_receiver>* obj) override
+    {
+        received = true;
+        ASSERT_TRUE(!obj);
+    }
 };
 
 TEST(proxy_receiver, has_no_receiver)
@@ -52,7 +55,7 @@ TEST(proxy_receiver, can_transmit_signals)
     proxy_receiver<test_proxy_receiver_signals> p;
     test_simple_receiver r;
     p.attach(r);
-    p.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    p.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, nullptr)));
     EXPECT_TRUE(r.received);
 }
 
@@ -61,20 +64,21 @@ struct test_filter_proxy_receiver
 {
     bool do_filtering = false;
 
-    void some_signal() override
+    void some_signal(unique_ptr<test_filter_proxy_receiver>* obj) override
     {
         received = true;
         if (do_filtering)
             this->filter_signal();
-    }
 
-    void delete_signal(shared_ptr<void>& obj) override { obj.reset(); }
+        if (obj)
+            obj->reset();
+    }
 };
 
 TEST(filter_proxy_receiver, can_perform_filter_signal)
 {
     test_filter_proxy_receiver f;
-    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, nullptr)));
     EXPECT_TRUE(f.received);
 }
 
@@ -83,7 +87,7 @@ TEST(filter_proxy_receiver, can_pass_signal)
     test_filter_proxy_receiver f;
     test_simple_receiver r;
     f.attach(r);
-    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, nullptr)));
     EXPECT_TRUE(r.received);
 }
 
@@ -94,17 +98,16 @@ TEST(filter_proxy_receiver, can_filter_signal)
 
     test_simple_receiver r;
     f.attach(r);
-    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    f.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, nullptr)));
     EXPECT_FALSE(r.received);
 }
 
 TEST(filter_proxy_receiver, can_be_destroyed_by_filter)
 {
-    test_filter_proxy_receiver* f = new test_filter_proxy_receiver();
+    unique_ptr<test_filter_proxy_receiver> obj(new test_filter_proxy_receiver());
     test_simple_receiver r;
-    f->attach(r);
-    shared_ptr<void> obj = shared_ptr<test_filter_proxy_receiver>(f);
-    EXPECT_NO_FATAL_FAILURE(f->transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::delete_signal, placeholders::_1, ref(obj)))));
+    obj->attach(r);
+    EXPECT_NO_FATAL_FAILURE(obj->transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, &obj))));
     EXPECT_FALSE(r.received);
 }
 
@@ -124,7 +127,7 @@ TEST(queue_proxy_receiver, can_queue_signal)
     test_simple_receiver r;
     q.attach(r);
 
-    q.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    q.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, nullptr)));
     EXPECT_FALSE(r.received);
 
     EXPECT_TRUE(q.pop_signal());
@@ -157,7 +160,7 @@ TEST(queue_proxy_receiver, can_lock_queue)
     int lock_count = 0;
 
     queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q(test_locker(&lock_count, &was_locked));
-    q.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    q.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, nullptr)));
     EXPECT_TRUE(was_locked);
     EXPECT_EQ(0, lock_count);
 
@@ -175,7 +178,7 @@ TEST(queue_proxy_receiver, can_copy_locker)
 
     queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q1(test_locker(&lock_count, &was_locked));
     queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q2(q1);
-    q2.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    q2.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, nullptr)));
     EXPECT_TRUE(was_locked);
     EXPECT_EQ(0, lock_count);
 }
@@ -187,7 +190,7 @@ TEST(queue_proxy_receiver, can_move_locker)
 
     queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q1(test_locker(&lock_count, &was_locked));
     queue_proxy_receiver<test_proxy_receiver_signals, test_locker> q2(move(q1));
-    q2.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1)));
+    q2.transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, nullptr)));
     EXPECT_TRUE(was_locked);
     EXPECT_EQ(0, lock_count);
 }
