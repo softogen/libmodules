@@ -104,10 +104,10 @@ TEST(filter_proxy_receiver, can_filter_signal)
 
 TEST(filter_proxy_receiver, can_be_destroyed_by_filter)
 {
-    unique_ptr<test_filter_proxy_receiver> obj(new test_filter_proxy_receiver());
+    unique_ptr<test_filter_proxy_receiver> my_obj(new test_filter_proxy_receiver());
     test_simple_receiver r;
-    obj->attach(r);
-    EXPECT_NO_FATAL_FAILURE(obj->transmit_signal(packed_signal<test_proxy_receiver_signals>(bind(&test_proxy_receiver_signals::some_signal, placeholders::_1, &obj))));
+    my_object->attach(r);
+    EXPECT_NO_FATAL_FAILURE( my_object->transmit_signal( packed_signal< test_proxy_receiver_signals >( std::bind( &test_proxy_receiver_signals::some_signal, std::placeholders::_1, &obj ))));
     EXPECT_FALSE(r.received);
 }
 
