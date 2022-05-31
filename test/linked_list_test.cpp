@@ -18,6 +18,7 @@ License.
 
 #include <libmodules/linked_list.hpp>
 #include <gmock/gmock.h>
+#include <utility>
 
 using namespace mtl;
 
@@ -143,6 +144,21 @@ TEST(linking_in_list, can_swap_neighbourhoods_backward)
         EXPECT_EQ(nullptr, first.next());
     }
     EXPECT_EQ(nullptr, second.next());
+}
+
+TEST(linking_in_list, can_use_general_swap)
+{
+    using std::swap;
+    object* ptr = nullptr;
+    object second(ptr);
+    object first(ptr);
+
+    swap(second, first); // This order breaks the default swap operation.
+    EXPECT_EQ(&second, ptr);
+    EXPECT_EQ(&first, second.next());
+    EXPECT_TRUE(first);
+    EXPECT_TRUE(second);
+    EXPECT_EQ(nullptr, first.next());
 }
 
 TEST(linking_in_list, can_move_construct)

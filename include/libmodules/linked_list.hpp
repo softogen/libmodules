@@ -141,4 +141,10 @@ namespace mtl
         next_pointer _next{nullptr};
         prev_pointer _prev{nullptr};
     }; // class enable_linking_in_list
+
+    template<typename T>
+    void swap(enable_linking_in_list<T> first, enable_linking_in_list<T> second) noexcept
+    {
+        first.swap(second);
+    }
 } // namespace mtl
