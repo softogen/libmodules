@@ -56,16 +56,13 @@ namespace mtl
     template<typename T>
     class enable_linking_in_list
     {
+    public:
         using type = enable_linking_in_list<T>;
         using next_pointer = T*;
         using prev_pointer = next_pointer*;
         using reference    = type&;
         using rvalue       = type&&;
 
-        prev_pointer _prev = nullptr;
-        next_pointer _next = nullptr;
-
-    public:
         enable_linking_in_list() = default;
 
         // Construct new object and insert it into the head of the provided list.
@@ -82,15 +79,6 @@ namespace mtl
             if (list)
                 list->_prev = &_next;
             list = static_cast<next_pointer>(this);
-        }
-
-        ~enable_linking_in_list()
-        {
-            // Exclude self from the list
-            if (_prev)
-                *_prev = _next;
-            if (_next)
-                _next->_prev = _prev;
         }
 
         reference swap(reference other)
@@ -138,5 +126,19 @@ namespace mtl
         // Cast to bool is true in case if the item is linked into the list.
         // It means that it has not empty pointer to previous item.
         operator bool() const { return !!_prev; }
+
+    protected:
+        ~enable_linking_in_list()
+        {
+            // Exclude self from the list
+            if (_prev)
+                *_prev = _next;
+            if (_next)
+                _next->_prev = _prev;
+        }
+
+    private:
+        prev_pointer _prev = nullptr;
+        next_pointer _next = nullptr;
     }; // class enable_linking_in_list
 } // namespace mtl
