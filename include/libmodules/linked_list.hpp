@@ -63,11 +63,11 @@ namespace mtl
         using reference    = type&;
         using rvalue       = type&&;
 
-        enable_linking_in_list() = default;
+        enable_linking_in_list() noexcept = default;
 
         // Construct new object and insert it into the head of the provided list.
         // This constructor could be used to stack objects into the list one by one.
-        enable_linking_in_list(next_pointer& list)
+        explicit enable_linking_in_list(next_pointer& list) noexcept
         {
             // This assert is placed here to delay check until parent object is created.
             static_assert(std::is_base_of<enable_linking_in_list<T>, T>::value,
@@ -81,7 +81,7 @@ namespace mtl
             list = static_cast<next_pointer>(this);
         }
 
-        reference swap(reference other)
+        reference swap(reference other) noexcept
         {
             // Swap content
             // It isn't a simple operation due to ceases when neighborhoods are swapped
@@ -109,26 +109,26 @@ namespace mtl
         // The rest of copy constructors, copy operators and other operations
         // Copy constructor inserts the new item after the original item.
         // This allows to queue item in the list.
-        enable_linking_in_list (const reference     prev)  : enable_linking_in_list(prev._next) {}
-        enable_linking_in_list (      rvalue        other) { swap(other); }
-        reference operator=    (const reference     prev)  { return insert_after(prev); }
-        reference operator=    (      rvalue        other) { type tmp(std::move(other)); return swap(tmp); }
-        reference insert       (      next_pointer& list)  { type tmp(list);             return swap(tmp); }
-        reference unlink()                                 { type tmp;                   return swap(tmp); }
-        reference insert_after (const reference     prev)  { type tmp(prev);             return swap(tmp); }
-        reference insert_before(const reference     next)  { insert_after(next);         return swap(next); }
+        explicit enable_linking_in_list(const reference     prev)  noexcept : enable_linking_in_list(prev._next) {}
+        explicit enable_linking_in_list(      rvalue        other) noexcept { swap(other); }
+        reference operator=            (const reference     prev)  noexcept { return insert_after(prev); }
+        reference operator=            (      rvalue        other) noexcept { type tmp(std::move(other)); return swap(tmp); }
+        reference insert               (      next_pointer& list)  noexcept { type tmp(list);             return swap(tmp); }
+        reference insert_after         (const reference     prev)  noexcept { type tmp(prev);             return swap(tmp); }
+        reference insert_before        (const reference     next)  noexcept { insert_after(next);         return swap(next); }
+        reference unlink()                                         noexcept { type tmp;                   return swap(tmp); }
 
         // These getters allow to iterate down by linked list.
         // Constant object do not removes constant access.
-        const next_pointer next() const { return _next; }
-              next_pointer next()       { return _next; }
+        const next_pointer next() const noexcept { return _next; }
+              next_pointer next()       noexcept { return _next; }
 
         // Cast to bool is true in case if the item is linked into the list.
         // It means that it has not empty pointer to previous item.
-        operator bool() const { return !!_prev; }
+        operator bool() const noexcept { return !!_prev; }
 
     protected:
-        ~enable_linking_in_list()
+        ~enable_linking_in_list() noexcept
         {
             // Exclude self from the list
             if (_prev)
@@ -138,7 +138,7 @@ namespace mtl
         }
 
     private:
-        prev_pointer _prev = nullptr;
-        next_pointer _next = nullptr;
+        next_pointer _next{nullptr};
+        prev_pointer _prev{nullptr};
     }; // class enable_linking_in_list
 } // namespace mtl
