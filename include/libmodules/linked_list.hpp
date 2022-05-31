@@ -45,7 +45,7 @@ namespace mtl
     // Each item is the had of the sublist. It simplifies list method dramatically.
     //
     //   Objects in the linked list are managed outside of the list. It means, that they could be
-    // placed everywhere in the memory. They could be in the heap or at the program stack. Morother
+    // placed everywhere in the memory. They could be in the heap or at the program stack. Moreover
     // they could be a member of other objects. Linked list is just connect them to each other.
     // This fact allows to link different type objects. The only base virtual interface could be
     // linked into the list.
@@ -96,7 +96,7 @@ namespace mtl
         reference swap(reference other)
         {
             // Swap content
-            // It isn't a simple operation due to ceses when neighbourhoods are swapped
+            // It isn't a simple operation due to ceases when neighborhoods are swapped
             prev_pointer prev_tmp = _prev;
             next_pointer next_tmp = _next;
             next_pointer this_tmp = static_cast<next_pointer>(this);
@@ -130,8 +130,8 @@ namespace mtl
         reference insert_after (const reference     prev)  { type tmp(prev);             return swap(tmp); }
         reference insert_before(const reference     next)  { insert_after(next);         return swap(next); }
 
-        // These getters allow to iterate downt by linked list.
-        // Const object do not removes constatn access.
+        // These getters allow to iterate down by linked list.
+        // Constant object do not removes constant access.
         const next_pointer next() const { return _next; }
               next_pointer next()       { return _next; }
 
