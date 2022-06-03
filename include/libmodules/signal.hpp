@@ -20,6 +20,7 @@ License.
 #include "spy_pointer.hpp"
 
 #include <functional>
+#include <stdexcept>
 
 namespace mtl
 {
@@ -46,6 +47,13 @@ namespace mtl
     // You can attach multiple receivers to one emitter or one receiver to multiple emitters.
     // Multiple inheritance could be used to receive signals from emitters of different types.
     // Method send could return false in case if emitter instance is destroyed while sending.
+
+	class invalid_transmitter
+        : public std::logic_error
+    {
+    public:
+        using std::logic_error::logic_error;
+    };
 
     template<typename signal_table>
     using packed_signal = std::function<void(signal_table&)>;
@@ -75,7 +83,7 @@ namespace mtl
         virtual void transmit_signal(const packed_signal<signal_table>& call)
         {
             if (!_receiver)
-                return;
+                throw invalid_transmitter("Unable to transmit packed signal by invalid transmitter.");
 
             call(*_receiver);
         }
