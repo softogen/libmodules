@@ -44,7 +44,13 @@ struct test_receiver
     : public test_emitter_signals
     , public transmitter<test_emitter_signals>
 {
-    test_receiver() : transmitter<test_emitter_signals>(this) {}
+    enum receiver_flavor
+    {
+        valid_receiver,
+        invalid_receiver,
+    };
+
+    test_receiver(receiver_flavor flavor = valid_receiver) : transmitter<test_emitter_signals>(flavor == invalid_receiver ? nullptr : this) {}
 
     void some_signal() override                                               { received = true; }
     void attach(emitter<test_emitter_signals>& em, test_receiver& r) override { received = true; if(r.empty()) em.attach(r); } // Recursion is possible here
@@ -193,13 +199,23 @@ TEST(emitting, cna_forward_signals)
     EXPECT_TRUE(r.received);
 }
 
-TEST(emitting, forwardint_nothing_is_not_an_error)
+TEST(emitting, forwarding_nothing_is_not_an_error)
 {
     emitter<test_emitter_signals> em;
     test_receiver r;
 
     em.attach(r);
     EXPECT_NO_THROW(em.send(packed_signal<test_emitter_signals>()));
+    EXPECT_FALSE(r.received);
+}
+
+TEST(emitting, unable_forwardind_by_invalid_transmitter)
+{
+    emitter<test_emitter_signals> em;
+	test_receiver r{ test_receiver::invalid_receiver };
+
+    em.attach(r);
+    EXPECT_THROW(em.send(packed_signal<test_emitter_signals>(bind(&test_emitter_signals::some_signal, placeholders::_1))), invalid_transmitter);
     EXPECT_FALSE(r.received);
 }
 
