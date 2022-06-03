@@ -99,6 +99,14 @@ TEST(emitting, can_attach_and_detach_receivers)
     EXPECT_TRUE(r2.empty());
 }
 
+TEST(emitting, unable_to_detach_not_attached_receiver)
+{
+    emitter<test_emitter_signals> em;
+    test_receiver r;
+
+    EXPECT_THROW(em.detach(r), transmitter_not_attached);
+}
+
 TEST(emitting, emitter_copies_attachments)
 {
     emitter<test_emitter_signals> em1;

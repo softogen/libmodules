@@ -21,12 +21,20 @@ License.
 
 #include <vector>
 #include <algorithm>
+#include <stdexcept>
 
 namespace mtl
 {
     // This file is to implement signal transmission feature. Please see signal.hpp for details.
     // This file contains Emitter template implementation that emit signals to attached
     // transmitters.
+
+    class transmitter_not_attached
+        : public std::logic_error
+    {
+    public:
+        using std::logic_error::logic_error;
+    };
 
     template<typename signal_table>
     class emitter
@@ -61,7 +69,7 @@ namespace mtl
         {
             auto it = std::find(_transmitters.rbegin(), _transmitters.rend(), &transmitter);
             if (it == _transmitters.rend())
-                return;
+                throw transmitter_not_attached("Unable to detach transmitter that was not attached.");
 
             // Handle spy pointer to self instance to cleanup transmitters list at the end of all
             // recursive broadcasting and detaching processes.
