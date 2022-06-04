@@ -85,7 +85,7 @@ namespace mtl
     class spy_pointer final
         : private enable_linking_in_list<spy_pointer<object_base>>
     {
-        static_assert(std::is_base_of_v<object_base, object_type>, "The spy pointer should be specified by derived and base classes.");
+        static_assert(std::is_base_of<object_base, object_type>::value, "The spy pointer should be specified by derived and base classes.");
     public:
         using base_type = enable_linking_in_list<spy_pointer<object_base>>;
         using type = spy_pointer<object_type, object_base>;
