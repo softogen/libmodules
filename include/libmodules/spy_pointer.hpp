@@ -18,6 +18,7 @@ License.
 #pragma once
 
 #include "linked_list.hpp"
+
 #include <utility>
 
 namespace mtl
@@ -45,55 +46,49 @@ namespace mtl
     template<typename T>
     class enable_spying
     {
-        // Pointers should be able to add itself in the linked list
-        template<typename PointerType, typename Base>
-        friend class spy_pointer;
+    public:
+        bool empty() noexcept { return !_list_head; }
 
-        // List head could be modified in constant object
-        mutable spy_pointer<T>* _list_head = nullptr;
+        // Release all pointers that reference this object and stored in the linked list
+        void clear() noexcept;
 
     protected:
         // Constructors, destructor and copy operators has nothing specific. They take no ownership
         // of linked list from other object, but clears other object in case if it was moved. It
         // means that spy pointer operates like regular pointer and do not follow to object if it
         // was copied or moved.
-        enable_spying() = default;
-        enable_spying(const enable_spying<T>&  other) {}
-        enable_spying(      enable_spying<T>&& other) { other.clear(); }
-        virtual ~enable_spying() { clear(); }
+        enable_spying() noexcept = default;
+        ~enable_spying() noexcept { clear(); }
+        explicit enable_spying(const enable_spying<T>&other) noexcept {}
+        explicit enable_spying(enable_spying<T> && other) noexcept { other.clear(); }
 
-        enable_spying<T>& operator =(const enable_spying<T>&  other) {                return *this; }
-        enable_spying<T>& operator =(      enable_spying<T>&& other) { other.clear(); return *this; }
+        enable_spying<T>& operator =(const enable_spying<T>&other) noexcept { return *this; }
+        enable_spying<T>& operator =(enable_spying<T> && other) noexcept { other.clear(); return *this; }
 
         // Child type could by notified when it has new spy or lose the last one. It could overload
         // this signal to perform some specific actions.
-        virtual void on_spying_state_changed() {}
+        //
+        // Note: this function is executed in destructor of friend class. So, it should not throw.
+        virtual void on_spying_state_changed() noexcept {}
 
-    public:
-        bool empty() { return !_list_head; }
+    private:
+        // Pointers should be able to add itself in the linked list
+        template<typename PointerType, typename Base>
+        friend class spy_pointer;
 
-        // Release all pointers that reference this object and stored in the linked list
-        void clear();
+        // List head could be modified in constant object
+        mutable spy_pointer<T>* _list_head = nullptr;
     };
 
     template<typename T, typename Base>
-    class spy_pointer
+    class spy_pointer final
         : private enable_linking_in_list<spy_pointer<Base>>
     {
-        using base_type = enable_linking_in_list<spy_pointer<Base>>;
-
-        // Pointers could point to different type casts of one object
-        template<typename other_type, typename OtherBase>
-        friend class spy_pointer;
-        // Object should be able to release the pointer and exclude it from the list
-        friend base_type;
-
-        T* _p_object = nullptr;
-
     public:
+        using base_type = enable_linking_in_list<spy_pointer<Base>>;
         using type = spy_pointer<T, Base>;
 
-        spy_pointer(T* p_object = nullptr)
+        spy_pointer(T* p_object = nullptr) noexcept
             : _p_object(p_object)
         {
             if (!_p_object)
@@ -107,7 +102,7 @@ namespace mtl
                 tmp->on_spying_state_changed();
         }
 
-        ~spy_pointer()
+        ~spy_pointer() noexcept
         {
             if (!_p_object)
                 return;
@@ -124,11 +119,11 @@ namespace mtl
         }
 
         template<typename other_type>
-        type& swap(spy_pointer<other_type, Base>& other)
+        type& swap(spy_pointer<other_type, Base>& other) noexcept
         {
             // Swap linked lists
             base_type::swap(other);
-            // THen swap pointers
+            // Then swap pointers
             enable_spying<Base>* tmp = _p_object;
             _p_object = static_cast<T*>(other._p_object);
             other._p_object = static_cast<other_type*>(tmp);
@@ -137,46 +132,55 @@ namespace mtl
         }
 
         // The rest of copy constructors, copy operators and other operations
-        spy_pointer(     const type&  other) :                          spy_pointer(other._p_object) {}
+        explicit spy_pointer(const type&  other) noexcept : spy_pointer(other._p_object) {}
         template<typename other_type>
-        spy_pointer(const      spy_pointer<other_type, Base>&  other) : spy_pointer(static_cast<T*>(other._p_object)) {}
+        explicit spy_pointer(const spy_pointer<other_type, Base>&  other) noexcept : spy_pointer(static_cast<T*>(other._p_object)) {}
 
-        spy_pointer(           type&& other) {                                                             swap(other); }
+        explicit spy_pointer(type&& other) noexcept { swap(other); }
         template<typename other_type>
-        spy_pointer(           spy_pointer<other_type, Base>&& other) {                                    swap(other); }
+        explicit spy_pointer(spy_pointer<other_type, Base>&& other) noexcept { swap(other); }
 
-        type& operator =(const type&  other) { type tmp(other);                                     return swap(tmp); }
-        type& operator =(      type&& other) { type tmp(std::move(other));                          return swap(tmp); }
+        type& operator =(const type&  other) noexcept { type tmp(other);                                     return swap(tmp); }
+        type& operator =(      type&& other) noexcept { type tmp(std::move(other));                          return swap(tmp); }
         template<typename other_type>
-        type& operator =(const spy_pointer<other_type, Base>&  other) { type tmp(other);            return swap(tmp); }
+        type& operator =(const spy_pointer<other_type, Base>&  other) noexcept { type tmp(other);            return swap(tmp); }
         template<typename other_type>
-        type& operator =(      spy_pointer<other_type, Base>&& other) { type tmp(std::move(other)); return swap(tmp); }
+        type& operator =(      spy_pointer<other_type, Base>&& other) noexcept { type tmp(std::move(other)); return swap(tmp); }
 
         template<typename other_type>
-        operator spy_pointer<other_type, Base>() const { return spy_pointer<other_type, Base>(*this); }
+        operator spy_pointer<other_type, Base>() const noexcept { return spy_pointer<other_type, Base>(*this); }
 
-        type& reset(     T* p_object = nullptr) { type tmp(p_object); return swap(tmp); }
-        type& operator =(T* p_object)           { return reset(p_object); }
+        type& reset(     T* p_object = nullptr) noexcept { type tmp(p_object); return swap(tmp); }
+        type& operator =(T* p_object)           noexcept { return reset(p_object); }
         
-        operator bool() const { return !!_p_object; }
-        T* operator->() const { return   _p_object; }
-        T& operator *() const { return  *_p_object; }
-        T* get()        const { return   _p_object; }
-        operator   T*() const { return   _p_object; }
+        operator bool() const noexcept { return !!_p_object; }
+        T* operator->() const noexcept { return   _p_object; }
+        T& operator *() const noexcept { return  *_p_object; }
+        T* get()        const noexcept { return   _p_object; }
+        operator   T*() const noexcept { return   _p_object; }
 
-        template<typename other_type>
-        bool operator ==(spy_pointer<other_type, Base>& other)
-        {
-            return static_cast<enable_spying<Base>*>(_p_object) == static_cast<enable_spying<Base>*>(other._p_object);
-        }
+    private:
+        // Pointers could point to different type casts of one object
+        template<typename other_type, typename OtherBase>
+        friend class spy_pointer;
+        // Object should be able to release the pointer and exclude it from the list
+        friend base_type;
+
+        T* _p_object = nullptr;
     };
 
     // The clear method has to be defined after the spy_pointer class definition to be able access
     // it's members.
     template<typename T>
-    inline void enable_spying<T>::clear()
+    inline void enable_spying<T>::clear() noexcept
     {
         while(_list_head)
             _list_head->reset();
+    }
+
+    template<typename left_type, typename right_type, typename Base>
+    bool operator ==(const spy_pointer<left_type, Base>& left, const spy_pointer<right_type, Base>& right) noexcept
+    {
+        return static_cast<enable_spying<Base>*>(left.get()) == static_cast<enable_spying<Base>*>(right.get());
     }
 }

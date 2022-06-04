@@ -47,7 +47,7 @@ namespace mtl
 
         std::vector<spy_pointer<transmitter_type>> _transmitters;
 
-        void on_spying_state_changed()
+        void on_spying_state_changed() noexcept
         {
             // Do nothing in case if new broadcasting loop begins.
             if (sending())
