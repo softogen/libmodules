@@ -53,12 +53,12 @@ namespace mtl
     // The linked object have to inherit from the linked list class to enable required
     // functionality.  The linked list takes object type as a template parameter to hide static
     // cast and increase usability.
-    template<typename T>
+    template<typename object_type>
     class enable_linking_in_list
     {
     public:
-        using type = enable_linking_in_list<T>;
-        using next_pointer = T*;
+        using type = enable_linking_in_list<object_type>;
+        using next_pointer = object_type*;
         using prev_pointer = next_pointer*;
         using reference    = type&;
         using rvalue       = type&&;
@@ -70,7 +70,7 @@ namespace mtl
         explicit enable_linking_in_list(next_pointer& list) noexcept
         {
             // This assert is placed here to delay check until parent object is created.
-            static_assert(std::is_base_of<enable_linking_in_list<T>, T>::value,
+            static_assert(std::is_base_of<enable_linking_in_list<object_type>, object_type>::value,
                           "enable_linking_in_list should be base of template parameter type");
             // Place self into the list head
             _prev = &list;
@@ -142,8 +142,8 @@ namespace mtl
         prev_pointer _prev{nullptr};
     }; // class enable_linking_in_list
 
-    template<typename T>
-    void swap(enable_linking_in_list<T> first, enable_linking_in_list<T> second) noexcept
+    template<typename object_type>
+    void swap(enable_linking_in_list<object_type> first, enable_linking_in_list<object_type> second) noexcept
     {
         first.swap(second);
     }
