@@ -58,7 +58,12 @@ namespace mtl
         // of linked list from other object, but clears other object in case if it was moved. It
         // means that spy pointer operates like regular pointer and do not follow to object if it
         // was copied or moved.
-        enable_spying() noexcept = default;
+        enable_spying() noexcept
+        {
+            // Types should be defined to call `std::is_base_of`.
+            static_assert(std::is_base_of<enable_spying, object_type>::value, "The enable_spying template should be specified by derived class type.");
+        };
+
         ~enable_spying() noexcept { clear(); }
         explicit enable_spying(const enable_spying<object_type>&other) noexcept {}
         explicit enable_spying(enable_spying<object_type> && other) noexcept { other.clear(); }
@@ -79,7 +84,7 @@ namespace mtl
 
         // List head could be modified in constant object
         mutable spy_pointer<object_type>* _list_head = nullptr;
-    };
+    }; // class enable_spying
 
     template<typename object_type, typename object_base>
     class spy_pointer final
@@ -121,7 +126,7 @@ namespace mtl
         }
 
         template<typename other_type>
-        type& swap(spy_pointer<other_type, object_base>& other) noexcept
+        void swap(spy_pointer<other_type, object_base>& other) noexcept
         {
             // Swap linked lists
             base_type::swap(other);
@@ -129,8 +134,6 @@ namespace mtl
             enable_spying<object_base>* tmp = _p_object;
             _p_object = static_cast<object_type*>(other._p_object);
             other._p_object = static_cast<other_type*>(tmp);
-
-            return *this;
         }
 
         // The rest of copy constructors, copy operators and other operations
@@ -142,17 +145,17 @@ namespace mtl
         template<typename other_type>
         explicit spy_pointer(spy_pointer<other_type, object_base>&& other) noexcept   {                                    swap(other); }
 
-        type& operator =(const type&  other) noexcept                                 { type tmp(other);            return swap(tmp); }
-        type& operator =(      type&& other) noexcept                                 { type tmp(std::move(other)); return swap(tmp); }
+        type& operator =(const type&  other) noexcept                                 { type tmp(other);            swap(tmp); return *this; }
+        type& operator =(      type&& other) noexcept                                 { type tmp(std::move(other)); swap(tmp); return *this; }
         template<typename other_type>
-        type& operator =(const spy_pointer<other_type, object_base>&  other) noexcept { type tmp(other);            return swap(tmp); }
+        type& operator =(const spy_pointer<other_type, object_base>&  other) noexcept { type tmp(other);            swap(tmp); return *this; }
         template<typename other_type>
-        type& operator =(      spy_pointer<other_type, object_base>&& other) noexcept { type tmp(std::move(other)); return swap(tmp); }
+        type& operator =(      spy_pointer<other_type, object_base>&& other) noexcept { type tmp(std::move(other)); swap(tmp); return *this; }
 
         template<typename other_type>
         operator spy_pointer<other_type, object_base>() const noexcept { return spy_pointer<other_type, object_base>(*this); }
 
-        type& reset(     object_type* p_object = nullptr) noexcept { type tmp(p_object); return swap(tmp); }
+        type& reset(     object_type* p_object = nullptr) noexcept { type tmp(p_object); swap(tmp); return *this; }
         type& operator =(object_type* p_object)           noexcept { return reset(p_object); }
         
         operator bool()           const noexcept { return !!_p_object; }
@@ -169,7 +172,7 @@ namespace mtl
         friend base_type;
 
         object_type* _p_object = nullptr;
-    };
+    }; // class spy_pointer
 
     // The clear method has to be defined after the spy_pointer class definition to be able access
     // it's members.
@@ -184,5 +187,11 @@ namespace mtl
     bool operator ==(const spy_pointer<left_type, object_base>& left, const spy_pointer<right_type, object_base>& right) noexcept
     {
         return static_cast<enable_spying<object_base>*>(left.get()) == static_cast<enable_spying<object_base>*>(right.get());
+    }
+
+    template<typename first_type, typename second_type, typename object_base>
+    void swap(spy_pointer<first_type, object_base>& first, spy_pointer<second_type, object_base>& second) noexcept
+    {
+        first.swap(second);
     }
 }
