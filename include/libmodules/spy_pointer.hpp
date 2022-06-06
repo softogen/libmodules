@@ -126,7 +126,7 @@ namespace mtl
         }
 
         template<typename other_type>
-        type& swap(spy_pointer<other_type, object_base>& other) noexcept
+        void swap(spy_pointer<other_type, object_base>& other) noexcept
         {
             // Swap linked lists
             base_type::swap(other);
@@ -134,8 +134,6 @@ namespace mtl
             enable_spying<object_base>* tmp = _p_object;
             _p_object = static_cast<object_type*>(other._p_object);
             other._p_object = static_cast<other_type*>(tmp);
-
-            return *this;
         }
 
         // The rest of copy constructors, copy operators and other operations
@@ -147,17 +145,17 @@ namespace mtl
         template<typename other_type>
         explicit spy_pointer(spy_pointer<other_type, object_base>&& other) noexcept   {                                    swap(other); }
 
-        type& operator =(const type&  other) noexcept                                 { type tmp(other);            return swap(tmp); }
-        type& operator =(      type&& other) noexcept                                 { type tmp(std::move(other)); return swap(tmp); }
+        type& operator =(const type&  other) noexcept                                 { type tmp(other);            swap(tmp); return *this; }
+        type& operator =(      type&& other) noexcept                                 { type tmp(std::move(other)); swap(tmp); return *this; }
         template<typename other_type>
-        type& operator =(const spy_pointer<other_type, object_base>&  other) noexcept { type tmp(other);            return swap(tmp); }
+        type& operator =(const spy_pointer<other_type, object_base>&  other) noexcept { type tmp(other);            swap(tmp); return *this; }
         template<typename other_type>
-        type& operator =(      spy_pointer<other_type, object_base>&& other) noexcept { type tmp(std::move(other)); return swap(tmp); }
+        type& operator =(      spy_pointer<other_type, object_base>&& other) noexcept { type tmp(std::move(other)); swap(tmp); return *this; }
 
         template<typename other_type>
         operator spy_pointer<other_type, object_base>() const noexcept { return spy_pointer<other_type, object_base>(*this); }
 
-        type& reset(     object_type* p_object = nullptr) noexcept { type tmp(p_object); return swap(tmp); }
+        type& reset(     object_type* p_object = nullptr) noexcept { type tmp(p_object); swap(tmp); return *this; }
         type& operator =(object_type* p_object)           noexcept { return reset(p_object); }
         
         operator bool()           const noexcept { return !!_p_object; }
