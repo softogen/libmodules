@@ -81,7 +81,7 @@ namespace mtl
             list = static_cast<next_pointer>(this);
         }
 
-        reference swap(reference other) noexcept
+        void swap(reference other) noexcept
         {
             // Swap content
             // It isn't a simple operation due to ceases when neighborhoods are swapped
@@ -103,7 +103,6 @@ namespace mtl
                 _next->_prev = &_next;
             if (other._next)
                 other._next->_prev = &other._next;
-            return *this;
         }
 
         // The rest of copy constructors, copy operators and other operations
@@ -112,11 +111,11 @@ namespace mtl
         explicit enable_linking_in_list(const reference     prev)  noexcept : enable_linking_in_list(prev._next) {}
         explicit enable_linking_in_list(      rvalue        other) noexcept { swap(other); }
         reference operator=            (const reference     prev)  noexcept { return insert_after(prev); }
-        reference operator=            (      rvalue        other) noexcept { type tmp(std::move(other)); return swap(tmp); }
-        reference insert               (      next_pointer& list)  noexcept { type tmp(list);             return swap(tmp); }
-        reference insert_after         (const reference     prev)  noexcept { type tmp(prev);             return swap(tmp); }
-        reference insert_before        (const reference     next)  noexcept { insert_after(next);         return swap(next); }
-        reference unlink()                                         noexcept { type tmp;                   return swap(tmp); }
+        reference operator=            (      rvalue        other) noexcept { type tmp(std::move(other)); swap(tmp);  return *this;}
+        reference insert               (      next_pointer& list)  noexcept { type tmp(list);             swap(tmp);  return *this;}
+        reference insert_after         (const reference     prev)  noexcept { type tmp(prev);             swap(tmp);  return *this;}
+        reference insert_before        (const reference     next)  noexcept { insert_after(next);         swap(next); return *this;}
+        reference unlink()                                         noexcept { type tmp;                   swap(tmp);  return *this;}
 
         // These getters allow to iterate down by linked list.
         // Constant object do not removes constant access.
