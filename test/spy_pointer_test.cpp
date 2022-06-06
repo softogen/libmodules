@@ -43,6 +43,17 @@ TEST(spying, can_dereference_spy)
     EXPECT_TRUE(obj.state);
 }
 
+TEST(spying, can_swap_spys)
+{
+    ChildObject obj;
+    spy_pointer<ChildObject, SpiedObject> first(&obj);
+    spy_pointer<ChildObject, SpiedObject> second;
+    
+    swap(first, second);
+    EXPECT_FALSE(first);
+    EXPECT_TRUE(second);
+}
+
 TEST(spying, can_detect_spied_object_destruction)
 {
     spy_pointer<SpiedObject> spy;

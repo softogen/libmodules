@@ -84,7 +84,7 @@ namespace mtl
 
         // List head could be modified in constant object
         mutable spy_pointer<object_type>* _list_head = nullptr;
-    };
+    }; // class enable_spying
 
     template<typename object_type, typename object_base>
     class spy_pointer final
@@ -174,7 +174,7 @@ namespace mtl
         friend base_type;
 
         object_type* _p_object = nullptr;
-    };
+    }; // class spy_pointer
 
     // The clear method has to be defined after the spy_pointer class definition to be able access
     // it's members.
@@ -189,5 +189,11 @@ namespace mtl
     bool operator ==(const spy_pointer<left_type, object_base>& left, const spy_pointer<right_type, object_base>& right) noexcept
     {
         return static_cast<enable_spying<object_base>*>(left.get()) == static_cast<enable_spying<object_base>*>(right.get());
+    }
+
+    template<typename first_type, typename second_type, typename object_base>
+	void swap(spy_pointer<first_type, object_base>& first, spy_pointer<second_type, object_base>& second) noexcept
+    {
+        first.swap(second);
     }
 }
