@@ -192,7 +192,7 @@ namespace mtl
     }
 
     template<typename first_type, typename second_type, typename object_base>
-	void swap(spy_pointer<first_type, object_base>& first, spy_pointer<second_type, object_base>& second) noexcept
+    void swap(spy_pointer<first_type, object_base>& first, spy_pointer<second_type, object_base>& second) noexcept
     {
         first.swap(second);
     }
