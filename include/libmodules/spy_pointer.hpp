@@ -58,7 +58,12 @@ namespace mtl
         // of linked list from other object, but clears other object in case if it was moved. It
         // means that spy pointer operates like regular pointer and do not follow to object if it
         // was copied or moved.
-        enable_spying() noexcept = default;
+        enable_spying() noexcept
+        {
+            // Types should be defined to call `std::is_base_of`.
+            static_assert(std::is_base_of<enable_spying, object_type>::value, "The enable_spying template should be specified by derived class type.");
+        };
+
         ~enable_spying() noexcept { clear(); }
         explicit enable_spying(const enable_spying<object_type>&other) noexcept {}
         explicit enable_spying(enable_spying<object_type> && other) noexcept { other.clear(); }
