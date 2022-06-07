@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
 project(libmodules)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/dependencies/cmake-modules")
 set(gtest_force_shared_crt ON)
 
