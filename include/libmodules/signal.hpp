@@ -62,21 +62,17 @@ namespace mtl
     class transmitter
         : private enable_spying<transmitter<signal_table>>
     {
-        using base = enable_spying<transmitter<signal_table>>;
-        signal_table* _receiver = nullptr;
-        friend class spy_pointer<transmitter<signal_table>>; // Provide access to parent
-
     public:
         transmitter(signal_table* receiver = nullptr) : _receiver(receiver) {}
 
         // Returns receiver's interface
         // If no receiver specified then packed signal will be transmitted
-        signal_table* get() { return _receiver; }
+        signal_table* get() const noexcept { return _receiver; }
 
         // Detach from all emitters
-        void reset() { base::clear(); }
+        void reset() noexcept { base::clear(); }
         // Check if it is attached to any emitter
-        bool empty() { return base::empty(); }
+        bool empty() const noexcept { return base::empty(); }
 
         // Unpack packed signal and transmit it to the receiver
         // This method could be overridden to specify transmission
@@ -87,5 +83,15 @@ namespace mtl
 
             call(*_receiver);
         }
+
+    protected:
+        ~transmitter() = default;
+
+    private:
+        using base = enable_spying<transmitter<signal_table>>;
+
+        signal_table* _receiver = nullptr;
+
+        friend class spy_pointer<transmitter<signal_table>>; // Provide access to parent
     };
 } // namespace mtl

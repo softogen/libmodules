@@ -48,7 +48,7 @@ namespace mtl
     class enable_spying
     {
     public:
-        bool empty() noexcept { return !_list_head; }
+        bool empty() const noexcept { return !_list_head; }
 
         // Release all pointers that reference this object and stored in the linked list
         void clear() noexcept;
