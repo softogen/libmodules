@@ -70,7 +70,7 @@ namespace mtl
         explicit enable_linking_in_list(next_pointer& list) noexcept
         {
             // This assert is placed here to delay check until parent object is created.
-            static_assert(std::is_base_of<enable_linking_in_list<object_type>, object_type>::value,
+            static_assert(std::is_base_of_v<enable_linking_in_list<object_type>, object_type>,
                           "enable_linking_in_list should be base of template parameter type");
             // Place self into the list head
             _prev = &list;

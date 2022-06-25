@@ -61,7 +61,7 @@ namespace mtl
         enable_spying() noexcept
         {
             // Types should be defined to call `std::is_base_of`.
-            static_assert(std::is_base_of<enable_spying, object_type>::value, "The enable_spying template should be specified by derived class type.");
+            static_assert(std::is_base_of_v<enable_spying, object_type>, "The enable_spying template should be specified by derived class type.");
         };
 
         ~enable_spying() noexcept { clear(); }
@@ -90,7 +90,7 @@ namespace mtl
     class spy_pointer final
         : private enable_linking_in_list<spy_pointer<object_base>>
     {
-        static_assert(std::is_base_of<object_base, object_type>::value, "The spy pointer should be specified by derived and base classes.");
+        static_assert(std::is_base_of_v<object_base, object_type>, "The spy pointer should be specified by derived and base classes.");
     public:
         using base_type = enable_linking_in_list<spy_pointer<object_base>>;
         using type = spy_pointer<object_type, object_base>;
