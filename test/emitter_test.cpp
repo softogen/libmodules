@@ -309,35 +309,37 @@ TEST(emitting, emitter_can_detach_all_while_sending)
 TEST(emitting, can_delete_receiver_while_sending)
 {
     emitter<test_emitter_signals> em;
-    test_receiver* r = new test_receiver();
+    auto r = make_shared<test_receiver>();
     
     em.attach(*r);
-    shared_ptr<void> obj = shared_ptr<test_receiver>(r);
+	shared_ptr<void> obj{ move(r) };
     EXPECT_TRUE(em.send(&test_emitter_signals::delete_obj, ref(obj)));
     EXPECT_TRUE(em.empty());
 }
 
 TEST(emitting, can_delete_emitter_while_sending)
 {
-    emitter<test_emitter_signals>* em = new emitter<test_emitter_signals>();
+    auto em = make_shared<emitter<test_emitter_signals>>();
+    auto* em_ptr = em.get();
     test_receiver r;
     
     em->attach(r);
-    shared_ptr<void> obj = shared_ptr<emitter<test_emitter_signals>>(em);
-    EXPECT_FALSE(em->send(&test_emitter_signals::delete_obj, ref(obj)));
+    shared_ptr<void> obj{ move(em) };
+    EXPECT_FALSE(em_ptr->send(&test_emitter_signals::delete_obj, ref(obj)));
     EXPECT_TRUE(r.empty());
 }
 
 TEST(emitting, can_delete_emitter_while_recursive_sending)
 {
-    emitter<test_emitter_signals>* em = new emitter<test_emitter_signals>();
+    auto em = make_shared<emitter<test_emitter_signals>>();
+    auto* em_ptr = em.get();
     test_receiver r;
     
     em->attach(r);
 
-    shared_ptr<void> obj = shared_ptr<emitter<test_emitter_signals>>(em);
+    shared_ptr<void> obj{ move(em) };
     packed_signal<test_emitter_signals> signal(bind(&test_emitter_signals::delete_obj, placeholders::_1, ref(obj)));
-    EXPECT_FALSE(em->send(&test_emitter_signals::send_signal, ref(*em), signal));
+    EXPECT_FALSE(em_ptr->send(&test_emitter_signals::send_signal, ref(*em_ptr), signal));
     EXPECT_TRUE(r.empty());
 }
 
